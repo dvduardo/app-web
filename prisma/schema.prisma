@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String
+  name              String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  items             Item[]
+  customFields      CustomField[]
+}
+
+model Item {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title             String
+  description       String?
+  customData        String   @default("{}")
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  photos            Photo[]
+  
+  @@index([userId])
+}
+
+model CustomField {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  fieldName         String
+  fieldType         String   @default("text")
+  
+  createdAt         DateTime @default(now())
+  
+  @@unique([userId, fieldName])
+  @@index([userId])
+}
+
+model Photo {
+  id                String   @id @default(cuid())
+  itemId            String
+  item              Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  
+  data              String
+  mimeType          String   @default("image/jpeg")
+  order             Int      @default(0)
+  
+  createdAt         DateTime @default(now())
+  
+  @@index([itemId])
+}
