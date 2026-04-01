@@ -75,3 +75,46 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { fieldId } = body;
+
+    if (!fieldId) {
+      return NextResponse.json(
+        { error: "Field ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Verify field belongs to user
+    const customField = await prisma.customField.findUnique({
+      where: { id: fieldId },
+    });
+
+    if (!customField || customField.userId !== user.userId) {
+      return NextResponse.json(
+        { error: "Field not found or unauthorized" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.customField.delete({
+      where: { id: fieldId },
+    });
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting custom field:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
