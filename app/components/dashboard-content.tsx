@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Plus, Download, Upload, Search, Wifi, WifiOff } from "lucide-react";
+import { Plus, Download, Upload, Search } from "lucide-react";
 import { apiClient } from "@/app/lib/api-client";
 import Link from "next/link";
 import { ItemCard } from "./item-card";
-import { useOfflineSync } from "@/lib/use-offline-sync";
 
 interface Item {
   id: string;
@@ -23,17 +22,11 @@ interface Item {
 }
 
 export function DashboardContent({ userId }: { userId: string }) {
-  const { items: cachedItems, isLoading: isCacheLoading, isOnline, fetchItems: fetchOfflineItems } = useOfflineSync();
   const [items, setItems] = useState<Item[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
-
-  useEffect(() => {
-    setItems(cachedItems as Item[]);
-    setIsLoading(isCacheLoading);
-  }, [cachedItems, isCacheLoading]);
 
   useEffect(() => {
     fetchItems();
@@ -56,9 +49,6 @@ export function DashboardContent({ userId }: { userId: string }) {
       const response = await apiClient.get("/items");
       const newItems = response.data.items;
       setItems(newItems);
-      
-      // Também atualizar no cache offline
-      await fetchOfflineItems();
     } catch (err: any) {
       setError(err.response?.data?.error || "Erro ao carregar itens");
     } finally {
@@ -131,21 +121,6 @@ export function DashboardContent({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Online/Offline Status */}
-      <div className={`rounded-lg p-4 flex items-center gap-2 ${isOnline ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
-        {isOnline ? (
-          <>
-            <Wifi className="w-5 h-5 text-green-600" />
-            <span className="text-sm font-medium text-green-800">Online - Sincronizando com servidor</span>
-          </>
-        ) : (
-          <>
-            <WifiOff className="w-5 h-5 text-yellow-600" />
-            <span className="text-sm font-medium text-yellow-800">Offline - Usando dados locais</span>
-          </>
-        )}
-      </div>
-
       {/* Actions Bar */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
