@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/app/lib/auth-context";
-import { PWAInstaller } from "@/app/components/pwa-installer";
+
 import { ToastProvider } from "@/app/components/toast-provider";
 import { ClientProvider } from "@/app/components/client-provider";
 
@@ -18,13 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Coleção Virtual",
-  description: "Gerenciador de coleções - PWA offline-first",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Coleção Virtual",
-  },
+  description: "Gerenciador de coleções",
   formatDetection: {
     telephone: false,
   },
@@ -54,13 +48,11 @@ export default function RootLayout({
         <meta name="theme-color" content="#2563eb" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232563eb' width='192' height='192'/><text x='50%' y='50%' font-size='80' fill='white' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>📚</text></svg>" />
-        <script src="/offline-cache-manager.js" async />
       </head>
       <body className="min-h-full flex flex-col">
         <ClientProvider>
           <ToastProvider />
           <AuthProvider>
-            <PWAInstaller />
             {children}
           </AuthProvider>
         </ClientProvider>

@@ -1,12 +1,8 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
-import { useOfflineSync } from '@/lib/use-offline-sync';
 
 export function ClientProvider({ children }: { children: ReactNode }) {
-  // Initialize offline sync
-  useOfflineSync();
-
   // Handle unhandled promise rejections
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {

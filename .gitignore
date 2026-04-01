@@ -29,8 +29,10 @@
 *.pem
 
 # Environment variables (local)
+.env
 .env.local
 .env.*
+!.env.example
 
 # debug
 npm-debug.log*
@@ -47,3 +49,6 @@ next-env.d.ts
 
 /app/generated/prisma
 .playwright-mcp/
+image/
+.github/
+.vscode/

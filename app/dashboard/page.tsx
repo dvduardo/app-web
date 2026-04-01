@@ -7,7 +7,6 @@ import { apiClient } from "@/app/lib/api-client";
 import Link from "next/link";
 import { DashboardContent } from "@/app/components/dashboard-content";
 import { LogOut, BookOpen } from "lucide-react";
-import { OnlineStatus } from "@/app/components/online-status";
 
 export default function Dashboard() {
   const { user, isLoading, logout } = useAuth();
@@ -56,7 +55,6 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <OnlineStatus />
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"

@@ -175,7 +175,7 @@ export default function ItemPage() {
         for (const photo of photos) {
           if (photo.file) {
             const formData = new FormData();
-            formData.append("file", photo.file);
+            formData.append("photo", photo.file);
             await apiClient.post(
               `/items/${response.data.item.id}/photos`,
               formData
@@ -195,7 +195,7 @@ export default function ItemPage() {
         for (const photo of photos) {
           if (photo.file) {
             const formData = new FormData();
-            formData.append("file", photo.file);
+            formData.append("photo", photo.file);
             await apiClient.post(`/items/${itemId}/photos`, formData);
           }
         }

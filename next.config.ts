@@ -2,48 +2,18 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  
-  // Otimizações para PWA
   compress: true,
   productionBrowserSourceMaps: false,
   
-  // Otimizar imagens para mobile/offline
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [320, 480, 640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 31536000, // 1 ano - imagens raramente mudam
+    minimumCacheTTL: 31536000,
   },
   
-  // Headers para PWA e offline-first
   async headers() {
     return [
-      {
-        source: "/service-worker.js",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=0, must-revalidate",
-          },
-          {
-            key: "Service-Worker-Allowed",
-            value: "/",
-          },
-        ],
-      },
-      {
-        source: "/manifest.json",
-        headers: [
-          {
-            key: "Content-Type",
-            value: "application/manifest+json",
-          },
-          {
-            key: "Cache-Control",
-            value: "public, max-age=3600",
-          },
-        ],
-      },
       {
         source: "/:path((?!api).*)",
         headers: [
@@ -61,7 +31,6 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Cache estratégico para assets estáticos
       {
         source: "/fonts/:path*",
         headers: [
@@ -71,7 +40,6 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Assets versionados (JS, CSS)
       {
         source: "/_next/static/:path*",
         headers: [
@@ -84,7 +52,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Redirects para PWA  
   async redirects() {
     return [
       {
