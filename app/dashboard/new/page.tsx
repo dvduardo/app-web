@@ -162,8 +162,8 @@ export default function NewItemPage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full bg-gray-50 py-8 overflow-x-hidden">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         {/* Header */}
         <div className="mb-8">
           <Link href="/dashboard" className="text-blue-600 hover:text-blue-700">
@@ -307,18 +307,18 @@ export default function NewItemPage() {
           {/* Add New Field */}
           <div className="space-y-3 border-t pt-4">
             <h3 className="text-lg font-medium text-gray-900">Adicionar Novo Campo</h3>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="text"
                 value={newFieldName}
                 onChange={(e) => setNewFieldName(e.target.value)}
                 placeholder="Nome do campo"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               />
               <select
                 value={newFieldType}
                 onChange={(e) => setNewFieldType(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="flex-1 sm:flex-none px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="text">Texto</option>
                 <option value="number">Número</option>
@@ -328,7 +328,7 @@ export default function NewItemPage() {
               <button
                 type="button"
                 onClick={handleAddField}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-600 text-white rounded-md hover:bg-gray-700 font-medium"
               >
                 Adicionar
               </button>

@@ -36,7 +36,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
@@ -49,7 +49,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232563eb' width='192' height='192'/><text x='50%' y='50%' font-size='80' fill='white' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>📚</text></svg>" />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-screen w-full overflow-x-hidden flex flex-col">
         <ClientProvider>
           <ToastProvider />
           <AuthProvider>
