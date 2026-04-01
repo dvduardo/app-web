@@ -34,7 +34,7 @@ export function ItemCard({
       onClick={() => router.push(`/dashboard/item/${item.id}`)}
     >
       {/* Photo */}
-      <div className="h-48 bg-gray-200 relative overflow-hidden">
+      <div className="h-32 sm:h-40 md:h-48 bg-gray-200 relative overflow-hidden">
         {firstPhoto ? (
           <>
             <img
@@ -70,8 +70,8 @@ export function ItemCard({
       </div>
 
       {/* Content */}
-      <div className="p-4 flex-1 flex flex-col">
-        <h3 className="font-bold text-lg text-gray-900 line-clamp-2">
+      <div className="p-3 sm:p-4 flex-1 flex flex-col">
+        <h3 className="font-bold text-base sm:text-lg text-gray-900 line-clamp-2">
           {item.title}
         </h3>
         {item.description && (
@@ -90,7 +90,7 @@ export function ItemCard({
 
       {/* Actions */}
       <div
-        className="px-4 py-3 border-t border-gray-200 flex gap-2 bg-gray-50"
+        className="px-3 sm:px-4 py-2 sm:py-3 border-t border-gray-200 flex gap-2 bg-gray-50"
         onClick={(e) => e.stopPropagation()}
       >
         <button

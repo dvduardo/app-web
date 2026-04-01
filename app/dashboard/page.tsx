@@ -39,28 +39,28 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-50">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <BookOpen className="w-6 h-6 text-white" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="p-2 bg-blue-600 rounded-lg shrink-0">
+              <BookOpen className="w-5 sm:w-6 h-5 sm:h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
                 Minhas Coleções
               </h1>
-              <p className="text-gray-600 text-sm">Bem-vindo, <span className="font-semibold">{user.name}</span>!</p>
+              <p className="text-gray-600 text-xs sm:text-sm truncate">Bem-vindo, <span className="font-semibold">{user.name.split(' ')[0]}</span>!</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors w-full sm:w-auto"
             >
-              <LogOut className="w-4 h-4" />
-              Sair
+              <LogOut className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Sair</span>
             </button>
           </div>
         </div>

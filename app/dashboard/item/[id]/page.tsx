@@ -221,18 +221,18 @@ export default function ItemPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
               {isNew ? "Novo Item" : "Editar Item"}
             </h1>
             <Link
               href="/dashboard"
-              className="text-blue-600 hover:text-blue-700"
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
             >
-              Voltar
+              ← Voltar
             </Link>
           </div>
 
@@ -279,13 +279,13 @@ export default function ItemPage() {
               </label>
               <div className="space-y-4">
                 {photos.length > 0 && (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {photos.map((photo, idx) => (
                       <div key={idx} className="relative">
                         <img
                           src={photo.data || (photo.file ? URL.createObjectURL(photo.file) : "")}
                           alt="Preview"
-                          className="w-full h-40 object-cover rounded-md"
+                          className="w-full h-32 sm:h-40 object-cover rounded-md"
                         />
                         <button
                           type="button"

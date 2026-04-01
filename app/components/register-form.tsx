@@ -66,145 +66,153 @@ export function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-blue-600 rounded-lg">
-              <BookOpen className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          <h2 className="text-3xl font-extrabold text-gray-900">
-            Coleções
-          </h2>
-          <p className="mt-2 text-gray-600">Crie sua conta para começar a organizar suas coleções</p>
-        </div>
-        <form className="mt-8 space-y-6 bg-white rounded-lg shadow p-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4 border border-red-200">
-              <p className="text-sm font-medium text-red-800">{error}</p>
-            </div>
-          )}
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                <span className="text-red-600">*</span> Nome Completo
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  aria-label="Nome Completo"
-                  aria-required="true"
-                  className="block w-full pl-10 px-3 py-2 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900 placeholder-gray-500 sm:text-sm"
-                  placeholder="Ex: João Silva"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                <span className="text-red-600">*</span> Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  aria-label="Email"
-                  aria-required="true"
-                  className="block w-full pl-10 px-3 py-2 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900 placeholder-gray-500 sm:text-sm"
-                  placeholder="exemplo@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                <span className="text-red-600">*</span> Senha (mínimo 6 caracteres)
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  aria-label="Senha. Mínimo 6 caracteres."
-                  aria-required="true"
-                  className="block w-full pl-10 px-3 py-2 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900 placeholder-gray-500 sm:text-sm"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                <span className="text-red-600">*</span> Confirmar Senha
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  aria-label="Confirmar Senha"
-                  aria-required="true"
-                  className="block w-full pl-10 px-3 py-2 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900 placeholder-gray-500 sm:text-sm"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen animated-gradient relative overflow-hidden py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+      {/* Decorative elements */}
+      <div className="absolute top-10 left-10 w-40 sm:w-56 md:w-72 h-40 sm:h-56 md:h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 float-animation"></div>
+      <div className="absolute -bottom-8 right-10 w-40 sm:w-56 md:w-72 h-40 sm:h-56 md:h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 float-animation animation-delay-2s"></div>
+      <div className="absolute top-1/2 left-1/3 w-40 sm:w-56 md:w-72 h-40 sm:h-56 md:h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 float-animation animation-delay-4s"></div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              aria-busy={isLoading}
-              className="w-full flex items-center justify-center gap-2 py-3 sm:py-2 px-4 border border-transparent text-base sm:text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-            >
-              {isLoading ? (
-                <>
-                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Criando conta...
-                </>
-              ) : (
-                <>
-                  <UserPlus className="w-4 h-4" />
-                  Criar Conta
-                </>
-              )}
-            </button>
-          </div>
-
+      {/* Content */}
+      <div className="relative z-10">
+        <div className="max-w-md w-full px-4 sm:px-0 space-y-6 sm:space-y-8 fade-in-up">
           <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Já tem uma conta?{" "}
-              <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-700">
-                Faça login aqui
-              </Link>
-            </p>
+            <div className="flex justify-center mb-4">
+              <div className="p-4 bg-linear-to-br from-blue-600 to-purple-600 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110">
+                <BookOpen className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
+              Coleções
+            </h2>
+            <p className="mt-3 text-lg text-white/80 drop-shadow">Crie sua conta para começar a organizar suas coleções</p>
           </div>
-        </form>
+          <form className="mt-8 space-y-6 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/20" onSubmit={handleSubmit}>
+            {error && (
+              <div className="rounded-xl bg-red-50 p-4 border-2 border-red-200 shadow-md animate-pulse">
+                <p className="text-sm font-medium text-red-800">{error}</p>
+              </div>
+            )}
+            <div className="space-y-5">
+              <div className="group">
+                <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="text-red-600">*</span> Nome Completo
+                </label>
+                <div className="relative">
+                  <User className="absolute left-4 top-3.5 text-gray-400 w-5 h-5 group-focus-within:text-blue-600 transition-colors" />
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    autoComplete="name"
+                    required
+                    aria-label="Nome Completo"
+                    aria-required="true"
+                    className="block w-full pl-11 px-4 py-3 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-base text-gray-900 placeholder-gray-400 transition-all duration-300 input-focus-glow hover:border-gray-400"
+                    placeholder="Ex: João Silva"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="group">
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="text-red-600">*</span> Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-3.5 text-gray-400 w-5 h-5 group-focus-within:text-blue-600 transition-colors" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    aria-label="Email"
+                    aria-required="true"
+                    className="block w-full pl-11 px-4 py-3 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-base text-gray-900 placeholder-gray-400 transition-all duration-300 input-focus-glow hover:border-gray-400"
+                    placeholder="exemplo@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="group">
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="text-red-600">*</span> Senha (mínimo 6 caracteres)
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-3.5 text-gray-400 w-5 h-5 group-focus-within:text-blue-600 transition-colors" />
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    aria-label="Senha. Mínimo 6 caracteres."
+                    aria-required="true"
+                    className="block w-full pl-11 px-4 py-3 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-base text-gray-900 placeholder-gray-400 transition-all duration-300 input-focus-glow hover:border-gray-400"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="group">
+                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="text-red-600">*</span> Confirmar Senha
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-3.5 text-gray-400 w-5 h-5 group-focus-within:text-blue-600 transition-colors" />
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    aria-label="Confirmar Senha"
+                    aria-required="true"
+                    className="block w-full pl-11 px-4 py-3 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-base text-gray-900 placeholder-gray-400 transition-all duration-300 input-focus-glow hover:border-gray-400"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                aria-busy={isLoading}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent text-base font-semibold rounded-xl text-white bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-2xl button-press"
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Criando conta...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-5 h-5" />
+                    Criar Conta
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="text-center pt-2">
+              <p className="text-sm text-gray-600">
+                Já tem uma conta?{" "}
+                <Link href="/auth/login" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-all duration-200 inline-block">
+                  Faça login aqui
+                </Link>
+              </p>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
