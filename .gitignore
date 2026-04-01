@@ -29,7 +29,6 @@
 *.pem
 
 # Environment variables (local)
-.env
 .env.local
 .env.*.local
 
