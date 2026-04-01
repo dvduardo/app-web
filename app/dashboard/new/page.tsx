@@ -116,6 +116,26 @@ export default function NewItemPage() {
     setPhotoPreview(newPreviews);
   };
 
+  const handleRemoveField = async (fieldId: string, fieldName: string) => {
+    if (!confirm(`Deseja remover o campo "${fieldName}"?`)) {
+      return;
+    }
+
+    try {
+      await apiClient.delete('/custom-fields', {
+        data: { fieldId },
+      });
+      setCustomFields(customFields.filter((f) => f.id !== fieldId));
+      const { [fieldName]: _, ...newCustomData } = formData.customData;
+      setFormData((prev) => ({
+        ...prev,
+        customData: newCustomData,
+      }));
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Erro ao remover campo');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) {
@@ -268,12 +288,21 @@ export default function NewItemPage() {
               <h3 className="text-lg font-medium text-gray-900">Campos Customizados</h3>
               {customFields.map((field) => (
                 <div key={field.id}>
-                  <label
-                    htmlFor={field.fieldName}
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    {field.fieldName}
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label
+                      htmlFor={field.fieldName}
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      {field.fieldName}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveField(field.id, field.fieldName)}
+                      className="ml-2 px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded hover:bg-red-200 transition"
+                    >
+                      ✕ Remover
+                    </button>
+                  </div>
                   {field.fieldType === 'textarea' ? (
                     <textarea
                       id={field.fieldName}

@@ -86,6 +86,7 @@ export default function ItemPage() {
   const fetchCustomFields = async () => {
     try {
       const response = await apiClient.get("/custom-fields");
+      console.log("Custom fields carregados:", response.data.customFields);
       setCustomFields(response.data.customFields || []);
     } catch (err) {
       console.error("Erro ao carregar campos customizados:", err);
@@ -112,6 +113,23 @@ export default function ItemPage() {
       });
     } catch (err: any) {
       setError(err.response?.data?.error || "Erro ao criar campo");
+    }
+  };
+
+  const handleRemoveField = async (fieldId: string, fieldName: string) => {
+    if (!confirm(`Deseja remover o campo "${fieldName}"?`)) {
+      return;
+    }
+
+    try {
+      await apiClient.delete("/custom-fields", {
+        data: { fieldId },
+      });
+      setCustomFields(customFields.filter((f) => f.id !== fieldId));
+      const { [fieldName]: _, ...newCustomData } = customData;
+      setCustomData(newCustomData);
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Erro ao remover campo");
     }
   };
 
@@ -328,9 +346,18 @@ export default function ItemPage() {
                 <div className="space-y-3">
                   {customFields.map((field) => (
                     <div key={field.id}>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {field.fieldName}
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-sm font-medium text-gray-700">
+                          {field.fieldName}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveField(field.id, field.fieldName)}
+                          className="ml-2 px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded hover:bg-red-200 transition"
+                        >
+                          Remove
+                        </button>
+                      </div>
                       {field.fieldType === "text" ? (
                         <input
                           type="text"
