@@ -29,7 +29,7 @@ export default defineConfig({
     timeout: 120 * 1000,
     env: {
       JWT_SECRET: process.env.JWT_SECRET ?? 'e2e-test-jwt-secret',
-      DATABASE_URL: process.env.DATABASE_URL ?? 'file:./prisma/dev.db',
+      DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/e2e_test',
     },
   },
 });
