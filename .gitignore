@@ -6,6 +6,7 @@
 
 # dependencies
 /node_modules
+package-lock.json
 /.pnp
 .pnp.*
 .yarn/*
@@ -51,3 +52,6 @@ next-env.d.ts
 .playwright-mcp/
 image/
 .vscode/
+
+playwright-report/
+test-results/
