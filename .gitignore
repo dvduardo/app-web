@@ -50,5 +50,4 @@ next-env.d.ts
 /app/generated/prisma
 .playwright-mcp/
 image/
-.github/
 .vscode/
