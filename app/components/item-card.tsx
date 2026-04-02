@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Edit, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { getPhotoSrc } from "@/app/lib/photo-helper";
 
 interface Item {
   id: string;
@@ -38,7 +39,7 @@ export function ItemCard({
         {firstPhoto ? (
           <>
             <img
-              src={`data:${firstPhoto.mimeType};base64,${firstPhoto.data}`}
+              src={getPhotoSrc(firstPhoto)}
               alt={item.title}
               className={`w-full h-full object-cover transition-opacity duration-300 ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'

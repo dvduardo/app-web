@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { apiClient } from "@/app/lib/api-client";
 import { useAuth } from "@/app/lib/auth-context";
+import { getPhotoSrc } from "@/app/lib/photo-helper";
 import Link from "next/link";
 
 interface Item {
@@ -301,7 +302,7 @@ export default function ItemPage() {
                     {photos.map((photo, idx) => (
                       <div key={idx} className="relative">
                         <img
-                          src={photo.data || (photo.file ? URL.createObjectURL(photo.file) : "")}
+                          src={getPhotoSrc(photo)}
                           alt="Preview"
                           className="w-full h-32 sm:h-40 object-cover rounded-md"
                         />
