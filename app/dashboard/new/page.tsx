@@ -13,7 +13,7 @@ interface CustomField {
 }
 
 export default function NewItemPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, mounted } = useAuth();
   const router = useRouter();
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [formData, setFormData] = useState({
@@ -178,7 +178,16 @@ export default function NewItemPage() {
     }
   };
 
-  if (isLoading) return null;
+  if (!mounted || isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
   if (!user) return null;
 
   return (

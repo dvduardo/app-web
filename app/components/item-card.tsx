@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Edit, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getPhotoSrc } from "@/app/lib/photo-helper";
+import { ImageGalleryModal } from "./image-gallery-modal";
 
 interface Item {
   id: string;
@@ -28,6 +29,7 @@ export function ItemCard({
   const router = useRouter();
   const firstPhoto = item.photos?.[0];
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   return (
     <div 
@@ -35,7 +37,12 @@ export function ItemCard({
       onClick={() => router.push(`/dashboard/item/${item.id}`)}
     >
       {/* Photo */}
-      <div className="h-32 sm:h-40 md:h-48 bg-gray-200 relative overflow-hidden">
+      <div className="h-32 sm:h-40 md:h-48 bg-gray-200 relative overflow-hidden cursor-pointer" onClick={(e) => {
+        e.stopPropagation();
+        if (item.photos && item.photos.length > 0) {
+          setIsGalleryOpen(true);
+        }
+      }}>
         {firstPhoto ? (
           <>
             <img
@@ -114,6 +121,14 @@ export function ItemCard({
           <Trash2 className="w-4 h-4" /> <span className="hidden sm:inline">Deletar</span>
         </button>
       </div>
+
+      {/* Image Gallery Modal */}
+      <ImageGalleryModal
+        isOpen={isGalleryOpen}
+        photos={item.photos || []}
+        initialIndex={0}
+        onClose={() => setIsGalleryOpen(false)}
+      />
     </div>
   );
 }

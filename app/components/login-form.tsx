@@ -51,10 +51,10 @@ export function LoginForm() {
   };
 
   return (
-    <div className="max-w-md w-full px-4 sm:px-0 space-y-6 sm:space-y-8 fade-in-up">
+    <div className="max-w-md w-full px-4 sm:px-0 space-y-6 sm:space-y-8">
           <div className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="p-4 bg-linear-to-br from-blue-600 to-purple-600 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110">
+              <div className="p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110">
                 <BookOpen className="w-8 h-8 text-white" />
               </div>
             </div>
@@ -119,7 +119,7 @@ export function LoginForm() {
                 type="submit"
                 disabled={isLoading}
                 aria-busy={isLoading}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent text-base font-semibold rounded-xl text-white bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-2xl button-press"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent text-base font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-2xl button-press"
               >
                 {isLoading ? (
                   <>

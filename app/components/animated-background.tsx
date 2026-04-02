@@ -1,3 +1,5 @@
+"use client";
+
 export function AnimatedBackground({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen animated-gradient relative overflow-hidden py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">

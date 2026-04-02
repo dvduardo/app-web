@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { apiClient } from "@/app/lib/api-client";
 import { useAuth } from "@/app/lib/auth-context";
 import { getPhotoSrc } from "@/app/lib/photo-helper";
+import { ImageGalleryModal } from "@/app/components/image-gallery-modal";
 import Link from "next/link";
 
 interface Item {
@@ -30,7 +31,7 @@ export default function ItemPage() {
   const itemId = params.id as string;
   const isNew = itemId === "new";
   const router = useRouter();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, mounted } = useAuth();
 
   const [item, setItem] = useState<Item | null>(null);
   const [title, setTitle] = useState("");
@@ -48,6 +49,8 @@ export default function ItemPage() {
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryInitialIndex, setGalleryInitialIndex] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -228,7 +231,7 @@ export default function ItemPage() {
     }
   };
 
-  if (authLoading || (isLoading && !isNew)) {
+  if (!mounted || authLoading || (isLoading && !isNew)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -300,18 +303,23 @@ export default function ItemPage() {
                 {photos.length > 0 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {photos.map((photo, idx) => (
-                      <div key={idx} className="relative">
+                      <div key={idx} className="relative group cursor-pointer" onClick={() => {
+                        setGalleryInitialIndex(idx);
+                        setGalleryOpen(true);
+                      }}>
                         <img
                           src={getPhotoSrc(photo)}
                           alt="Preview"
-                          className="w-full h-32 sm:h-40 object-cover rounded-md"
+                          className="w-full h-32 sm:h-40 object-cover rounded-md group-hover:opacity-75 transition-opacity"
                         />
                         <button
                           type="button"
-                          onClick={() =>
-                            handleRemovePhoto(photo.id || `new-${idx}`)
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemovePhoto(photo.id || `new-${idx}`);
+                          }}
                           className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                          title="Remover foto"
                         >
                           X
                         </button>
@@ -461,6 +469,14 @@ export default function ItemPage() {
               </Link>
             </div>
           </form>
+
+          {/* Image Gallery Modal */}
+          <ImageGalleryModal
+            isOpen={galleryOpen}
+            photos={photos}
+            initialIndex={galleryInitialIndex}
+            onClose={() => setGalleryOpen(false)}
+          />
         </div>
       </div>
     </div>
