@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/backend/auth/require-user";
 import { prisma } from "@/backend/db/prisma";
 
+const MAX_PHOTO_BYTES = Number(process.env.ITEM_PHOTO_MAX_BYTES ?? 5 * 1024 * 1024);
+const ALLOWED_IMAGE_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -23,6 +31,20 @@ export async function POST(
       );
     }
 
+    if (!ALLOWED_IMAGE_MIME_TYPES.has(file.type)) {
+      return NextResponse.json(
+        { error: "Unsupported file type. Use JPEG, PNG, WEBP, or GIF." },
+        { status: 400 }
+      );
+    }
+
+    if (file.size > MAX_PHOTO_BYTES) {
+      return NextResponse.json(
+        { error: `File too large. Maximum size is ${Math.floor(MAX_PHOTO_BYTES / (1024 * 1024))}MB.` },
+        { status: 400 }
+      );
+    }
+
     const item = await prisma.item.findUnique({ where: { id } });
     if (!item || item.userId !== auth.user.userId) {
       return NextResponse.json({ error: "Item not found" }, { status: 404 });
@@ -31,7 +53,7 @@ export async function POST(
     // Convert file to base64
     const buffer = await file.arrayBuffer();
     const base64 = Buffer.from(buffer).toString("base64");
-    const mimeType = file.type || "image/jpeg";
+    const mimeType = file.type;
 
     // Get the current order count for this item
     const photoCount = await prisma.photo.count({

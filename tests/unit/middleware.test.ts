@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { withAuth } from '@/app/lib/middleware'
+import { withAuth } from '@/backend/http/with-auth'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Mock getCurrentUser
-vi.mock('@/app/lib/auth', () => ({
+vi.mock('@/backend/auth/jwt', () => ({
   getCurrentUser: vi.fn(),
 }))
 
@@ -14,7 +14,7 @@ describe('middleware', () => {
 
   describe('withAuth', () => {
     it('should allow authenticated users through', async () => {
-      const { getCurrentUser } = await import('@/app/lib/auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       const mockUser = { userId: 'user-123', email: 'test@example.com' }
       vi.mocked(getCurrentUser).mockResolvedValueOnce(mockUser as any)
 
@@ -31,7 +31,7 @@ describe('middleware', () => {
     })
 
     it('should reject unauthenticated users with 401', async () => {
-      const { getCurrentUser } = await import('@/app/lib/auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       vi.mocked(getCurrentUser).mockResolvedValueOnce(null)
 
       const mockHandler = vi.fn()
@@ -45,7 +45,7 @@ describe('middleware', () => {
     })
 
     it('should pass userId in context to handler', async () => {
-      const { getCurrentUser } = await import('@/app/lib/auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       const mockUser = { userId: 'user-456', email: 'another@example.com' }
       vi.mocked(getCurrentUser).mockResolvedValueOnce(mockUser as any)
 
@@ -65,7 +65,7 @@ describe('middleware', () => {
     })
 
     it('should return 401 response for unauthenticated', async () => {
-      const { getCurrentUser } = await import('@/app/lib/auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       vi.mocked(getCurrentUser).mockResolvedValueOnce(null)
 
       const mockHandler = vi.fn()
@@ -80,7 +80,7 @@ describe('middleware', () => {
     })
 
     it('should preserve request information when authorized', async () => {
-      const { getCurrentUser } = await import('@/app/lib/auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       const mockUser = { userId: 'user-789', email: 'user@example.com' }
       vi.mocked(getCurrentUser).mockResolvedValueOnce(mockUser as any)
 
@@ -104,7 +104,7 @@ describe('middleware', () => {
     })
 
     it('should handle handler errors gracefully', async () => {
-      const { getCurrentUser } = await import('@/app/lib/auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       const mockUser = { userId: 'user-123', email: 'test@example.com' }
       vi.mocked(getCurrentUser).mockResolvedValueOnce(mockUser as any)
 
@@ -124,7 +124,7 @@ describe('middleware', () => {
     })
 
     it('should work with GET requests', async () => {
-      const { getCurrentUser } = await import('@/app/lib/auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       const mockUser = { userId: 'user-123', email: 'test@example.com' }
       vi.mocked(getCurrentUser).mockResolvedValueOnce(mockUser as any)
 
@@ -144,7 +144,7 @@ describe('middleware', () => {
     })
 
     it('should work with POST requests', async () => {
-      const { getCurrentUser } = await import('@/app/lib/auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       const mockUser = { userId: 'user-123', email: 'test@example.com' }
       vi.mocked(getCurrentUser).mockResolvedValueOnce(mockUser as any)
 
@@ -164,7 +164,7 @@ describe('middleware', () => {
     })
 
     it('should work with PUT requests', async () => {
-      const { getCurrentUser } = await import('@/app/lib/auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       const mockUser = { userId: 'user-123', email: 'test@example.com' }
       vi.mocked(getCurrentUser).mockResolvedValueOnce(mockUser as any)
 
@@ -184,7 +184,7 @@ describe('middleware', () => {
     })
 
     it('should work with DELETE requests', async () => {
-      const { getCurrentUser } = await import('@/app/lib/auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       const mockUser = { userId: 'user-123', email: 'test@example.com' }
       vi.mocked(getCurrentUser).mockResolvedValueOnce(mockUser as any)
 

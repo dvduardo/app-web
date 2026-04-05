@@ -22,6 +22,7 @@ vi.mock('next/headers', () => ({
 describe('auth', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    process.env.JWT_SECRET = 'test-jwt-secret'
   })
 
   describe('generateToken', () => {
@@ -216,6 +217,25 @@ describe('auth', () => {
       await clearAuthCookie()
 
       expect(mockCookies.delete).toHaveBeenCalledWith('auth')
+    })
+  })
+
+  describe('JWT secret requirements', () => {
+    it('should throw when JWT_SECRET is missing outside test mode', async () => {
+      const previousNodeEnv = process.env.NODE_ENV
+      const previousSecret = process.env.JWT_SECRET
+
+      process.env.NODE_ENV = 'production'
+      delete process.env.JWT_SECRET
+
+      const { generateToken } = await import('@/backend/auth/jwt')
+
+      expect(() =>
+        generateToken({ userId: 'user-1', email: 'user@example.com' })
+      ).toThrow('JWT_SECRET environment variable is required')
+
+      process.env.NODE_ENV = previousNodeEnv
+      process.env.JWT_SECRET = previousSecret
     })
   })
 })

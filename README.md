@@ -73,20 +73,24 @@ app/
 │   └── custom-fields/   → Gerenciar campos personalizados
 ├── auth/                → Páginas de login e registro
 ├── dashboard/           → Dashboard principal + detalhe de itens
-├── components/          → Componentes reutilizáveis (forms, cards, providers)
-└── lib/                 → Lógica compartilhada (auth, API, helpers, tipos)
+└── components/          → Componentes reutilizáveis e composição da UI
 
 frontend/
+├── auth/                → Contexto e sessão do cliente
 ├── hooks/               → Hooks de dados e estado da interface
 ├── lib/                 → Utilitários voltados ao cliente
 └── providers/           → Providers do frontend
 
 backend/
 ├── auth/                → Helpers de autenticação/autorização
+├── db/                  → Prisma e acesso a banco
+├── http/                → Helpers HTTP e guards de rota
+├── security/            → Hash e verificação de senha
 ├── scripts/             → Scripts de execução
 └── validation/          → Validação e parsing da API
 
 tests/
+├── unit/                → Testes unitários e de integração leve
 └── e2e/                 → Testes end-to-end com Playwright
 ```
 
@@ -100,9 +104,13 @@ DATABASE_URL="file:./dev.db"
 
 # Autenticação
 JWT_SECRET="sua-chave-secreta-super-segura"
+ALLOW_INSECURE_COOKIES="false"
 
-# API
-NEXT_PUBLIC_API_URL="http://localhost:3000"
+# CORS opcional para frontend separado
+CORS_ALLOWED_ORIGINS="http://localhost:3001"
+
+# Upload de fotos
+ITEM_PHOTO_MAX_BYTES="5242880"
 ```
 
 ## 🤝 Contribuindo
@@ -113,7 +121,7 @@ Este projeto segue padrões específicos de desenvolvimento.
 
 - **TypeScript strict mode** — Sem `any`, sem `// @ts-ignore`
 - **Padrões Next.js 16** — App router, server/client components, API routes
-- **Reutilização** — Busque padrões similares em `/lib` antes de criar novos arquivos
+- **Reutilização** — Prefira `/frontend` para lógica de cliente e `/backend` para lógica de servidor
 - **Testes obrigatórios** — Feature nova = testes unitários + E2E
 - **ESLint deve passar** — `npm run lint`
 
@@ -132,4 +140,4 @@ MIT
 
 ---
 
-**Precisa de ajuda?** Verifique os testes em `/tests/e2e` e `/app/lib/__tests__/` para exemplos de como usar a API e componentes.
+**Precisa de ajuda?** Verifique os testes em `/tests/unit` e `/tests/e2e` para exemplos de uso da API, helpers e componentes.

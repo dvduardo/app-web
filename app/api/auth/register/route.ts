@@ -3,8 +3,8 @@ import { prisma } from "@/backend/db/prisma";
 import { hashPassword } from "@/backend/security/password";
 import { addCorsHeaders, handleCorsPreFlight } from "@/backend/http/cors";
 
-export async function OPTIONS() {
-  return handleCorsPreFlight();
+export async function OPTIONS(req: NextRequest) {
+  return handleCorsPreFlight(req.headers.get("origin"));
 }
 
 export async function POST(req: NextRequest) {
@@ -48,12 +48,12 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
 
-    return addCorsHeaders(response);
+    return addCorsHeaders(response, req.headers.get("origin"));
   } catch (error) {
     console.error("Registration error:", error);
     return addCorsHeaders(NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
-    ));
+    ), req.headers.get("origin"));
   }
 }

@@ -53,12 +53,12 @@ export async function POST(req: NextRequest) {
     );
 
     await setAuthCookie(token);
-    return addCorsHeaders(response);
+    return addCorsHeaders(response, req.headers.get("origin"));
   } catch (error) {
     console.error("Login error:", error);
     return addCorsHeaders(NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
-    ));
+    ), req.headers.get("origin"));
   }
 }

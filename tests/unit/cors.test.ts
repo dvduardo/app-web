@@ -4,11 +4,11 @@ import { NextResponse } from 'next/server'
 
 describe('cors', () => {
   describe('addCorsHeaders', () => {
-    it('should add CORS headers to response', () => {
+    it('should add base CORS headers to response', () => {
       const response = new NextResponse(null)
       const result = addCorsHeaders(response)
 
-      expect(result.headers.get('Access-Control-Allow-Origin')).toBe('*')
+      expect(result.headers.get('Access-Control-Allow-Origin')).toBeNull()
       expect(result.headers.get('Access-Control-Allow-Methods')).toBe(
         'GET, POST, PUT, DELETE, OPTIONS'
       )
@@ -32,7 +32,7 @@ describe('cors', () => {
       const result = addCorsHeaders(response)
 
       expect(result.headers.get('X-Custom-Header')).toBe('custom-value')
-      expect(result.headers.get('Access-Control-Allow-Origin')).toBe('*')
+      expect(result.headers.get('Access-Control-Allow-Origin')).toBeNull()
     })
 
     it('should set correct Max-Age value in seconds', () => {
@@ -71,6 +71,17 @@ describe('cors', () => {
       const headers = result.headers.get('Access-Control-Allow-Headers')
       expect(headers).toContain('Content-Type')
     })
+    it('should allow configured origin and credentials', () => {
+      process.env.CORS_ALLOWED_ORIGINS = 'https://frontend.example.com'
+
+      const response = new NextResponse(null)
+      const result = addCorsHeaders(response, 'https://frontend.example.com')
+
+      expect(result.headers.get('Access-Control-Allow-Origin')).toBe('https://frontend.example.com')
+      expect(result.headers.get('Access-Control-Allow-Credentials')).toBe('true')
+      expect(result.headers.get('Vary')).toBe('Origin')
+      delete process.env.CORS_ALLOWED_ORIGINS
+    })
   })
 
   describe('handleCorsPreFlight', () => {
@@ -80,10 +91,10 @@ describe('cors', () => {
       expect(result.status).toBe(200)
     })
 
-    it('should include CORS headers in preflight response', () => {
+    it('should include standard CORS headers in preflight response', () => {
       const result = handleCorsPreFlight()
 
-      expect(result.headers.get('Access-Control-Allow-Origin')).toBe('*')
+      expect(result.headers.get('Access-Control-Allow-Origin')).toBeNull()
       expect(result.headers.get('Access-Control-Allow-Methods')).toBe(
         'GET, POST, PUT, DELETE, OPTIONS'
       )

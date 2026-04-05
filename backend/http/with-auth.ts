@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "./auth";
+import { getCurrentUser } from "@/backend/auth/jwt";
 
 export async function withAuth(
   handler: (

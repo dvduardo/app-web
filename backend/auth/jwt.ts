@@ -1,20 +1,18 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
-
 export interface JWTPayload {
   userId: string;
   email: string;
 }
 
 export function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "30d" });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: "30d" });
 }
 
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return jwt.verify(token, getJwtSecret()) as JWTPayload;
   } catch {
     return null;
   }
@@ -47,4 +45,18 @@ export async function getCurrentUser(): Promise<JWTPayload | null> {
   const token = await getTokenFromCookies();
   if (!token) return null;
   return verifyToken(token);
+}
+
+function getJwtSecret(): string {
+  const configuredSecret = process.env.JWT_SECRET?.trim();
+
+  if (configuredSecret) {
+    return configuredSecret;
+  }
+
+  if (process.env.NODE_ENV === "test") {
+    return "test-jwt-secret";
+  }
+
+  throw new Error("JWT_SECRET environment variable is required");
 }

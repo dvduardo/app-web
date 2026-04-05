@@ -20,7 +20,6 @@ export default defineConfig({
         'backend/db/**/*.ts',
         'backend/http/**/*.ts',
         'backend/security/**/*.ts',
-        'app/lib/middleware.ts',
       ],
       exclude: [
         'node_modules/',

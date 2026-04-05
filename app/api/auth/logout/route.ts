@@ -2,16 +2,16 @@ import { NextResponse } from "next/server";
 import { clearAuthCookie } from "@/backend/auth/jwt";
 import { addCorsHeaders, handleCorsPreFlight } from "@/backend/http/cors";
 
-export async function OPTIONS() {
-  return handleCorsPreFlight();
+export async function OPTIONS(req: Request) {
+  return handleCorsPreFlight(req.headers.get("origin"));
 }
 
-export async function POST() {
+export async function POST(req: Request) {
   const response = NextResponse.json(
     { message: "Logged out successfully" },
     { status: 200 }
   );
 
   await clearAuthCookie();
-  return addCorsHeaders(response);
+  return addCorsHeaders(response, req.headers.get("origin"));
 }
