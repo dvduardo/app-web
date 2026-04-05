@@ -32,7 +32,7 @@ Hoje o projeto está organizado em três frentes principais:
 | UI | Tailwind CSS 4 + Lucide React |
 | Forms | React Hook Form + Zod |
 | Dados no cliente | TanStack React Query 5 + Axios |
-| Banco | Prisma ORM + SQLite |
+| Banco | Prisma ORM + PostgreSQL |
 | Auth | JWT + bcryptjs |
 | Testes | Vitest + Testing Library + Playwright |
 | Observabilidade | Pino |
@@ -50,8 +50,7 @@ contexts/               contexto de autenticação no cliente
 hooks/                  hooks de dados para itens, categorias e campos customizáveis
 lib/                    schemas, client HTTP e utilitários compartilhados
 server/                 auth, Prisma, validação, CORS, logs e scripts
-prisma/                 schema e bancos SQLite locais
-public/                 previews HTML de exploração visual
+prisma/                 schema e migrations do banco
 tests/                  suíte unitária e E2E
 ```
 
@@ -70,10 +69,10 @@ npm install
 
 ### Variáveis de ambiente
 
-Crie um arquivo `.env.local` na raiz do projeto:
+Copie [`.env.example`](/Users/david/Documents/projetos/app-web/.env.example) para `.env.local` e ajuste os valores:
 
 ```env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/app_web?schema=public"
 JWT_SECRET="troque-esta-chave-em-producao"
 ALLOW_INSECURE_COOKIES="false"
 CORS_ALLOWED_ORIGINS="http://localhost:3001"
@@ -82,15 +81,14 @@ LOG_LEVEL="debug"
 
 Observações:
 
-- `DATABASE_URL="file:./dev.db"` usa o SQLite local esperado pelo Prisma
+- o projeto agora está preparado para PostgreSQL, que é compatível com deploy na Vercel
 - em ambiente local, `ALLOW_INSECURE_COOKIES="true"` pode ser útil se você estiver testando sem HTTPS
 - `CORS_ALLOWED_ORIGINS` só é necessário se houver outro frontend consumindo a API
 
 ### Banco e seed
 
 ```bash
-npx prisma generate
-npx prisma db push
+npx prisma migrate dev
 npm run seed
 ```
 
@@ -127,6 +125,26 @@ npm run test:e2e:ui      # runner visual do Playwright
 npm run test:e2e:report  # abre o report do Playwright
 ```
 
+## Deploy na Vercel
+
+O projeto já está configurado para deploy com Prisma + Vercel:
+
+- o Prisma foi preparado para `postgresql`
+- existe migration inicial em `prisma/migrations/`
+- [`vercel.json`](/Users/david/Documents/projetos/app-web/vercel.json) roda `prisma migrate deploy` antes do build
+- `npm run build` já executa `prisma generate && next build`
+
+Para subir:
+
+1. Crie um banco PostgreSQL gerenciado, como Neon, Supabase ou Vercel Postgres.
+2. Configure na Vercel as env vars `DATABASE_URL`, `JWT_SECRET`, `ALLOW_INSECURE_COOKIES` e, se necessário, `CORS_ALLOWED_ORIGINS`.
+3. Faça o deploy do projeto normalmente na Vercel.
+4. Rode o seed manualmente em um ambiente conectado ao mesmo banco, se quiser popular um usuário inicial.
+
+Observação:
+
+- o script `npm start` continua útil para execução fora da Vercel, mas na plataforma a execução passa pelo fluxo padrão do Next.js
+
 ## API principal
 
 Rotas implementadas hoje:
@@ -160,20 +178,6 @@ O banco hoje gira em torno de cinco entidades:
 
 Cada usuário possui suas próprias categorias, campos customizáveis e itens. Cada item pode ter status, favorito, dados extras serializados e várias fotos ordenadas.
 
-## Previews visuais
-
-Arquivos de exploração visual disponíveis em `public/`:
-
-- [`public/home-web-proposal-preview.html`](/Users/david/Documents/projetos/app-web/public/home-web-proposal-preview.html)
-- [`public/dashboard-web-proposal-preview.html`](/Users/david/Documents/projetos/app-web/public/dashboard-web-proposal-preview.html)
-- [`public/login-apparition-preview.html`](/Users/david/Documents/projetos/app-web/public/login-apparition-preview.html)
-
-Você pode abrir diretamente no navegador local, por exemplo:
-
-```bash
-open public/home-web-proposal-preview.html
-```
-
 ## Testes
 
 Cobertura atual inclui:
@@ -181,6 +185,8 @@ Cobertura atual inclui:
 - testes de autenticação, schemas, utilitários e regras de negócio
 - testes de CORS, upload de foto e helpers de API
 - testes E2E para autenticação, dashboard e itens
+
+Para os testes E2E locais, você pode usar `E2E_DATABASE_URL` para apontar para um banco PostgreSQL separado.
 
 Arquivos de referência:
 
