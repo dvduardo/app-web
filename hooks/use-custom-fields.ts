@@ -2,14 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { queryKeys } from "@/lib/query-keys";
 
 export interface CustomField {
   id: string;
   fieldName: string;
   fieldType: string;
 }
-
-const CUSTOM_FIELDS_QUERY_KEY = ["custom-fields"];
 
 async function fetchCustomFields(): Promise<CustomField[]> {
   const response = await apiClient.get("/custom-fields");
@@ -34,7 +33,7 @@ export function useCustomFields(enabled = true) {
   const queryClient = useQueryClient();
 
   const customFieldsQuery = useQuery({
-    queryKey: CUSTOM_FIELDS_QUERY_KEY,
+    queryKey: queryKeys.customFields.all(),
     queryFn: fetchCustomFields,
     enabled,
   });
@@ -42,14 +41,14 @@ export function useCustomFields(enabled = true) {
   const createMutation = useMutation({
     mutationFn: createCustomField,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: CUSTOM_FIELDS_QUERY_KEY });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all() });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteCustomField,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: CUSTOM_FIELDS_QUERY_KEY });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all() });
     },
   });
 

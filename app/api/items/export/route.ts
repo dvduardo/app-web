@@ -1,16 +1,23 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/server/auth/jwt";
 import { prisma } from "@/server/db/prisma";
+import { logRequest, logRequestError } from "@/server/logging/request";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const startedAt = Date.now();
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      logRequest(req, startedAt, response);
+      return response;
     }
 
     const items = await prisma.item.findMany({
-      where: { userId: user.userId },
+      where: {
+        userId: user.userId,
+        deletedAt: null,
+      },
       include: {
         photos: {
           orderBy: { order: "asc" },
@@ -19,18 +26,22 @@ export async function GET() {
     });
 
     const jsonData = JSON.stringify(items, null, 2);
-    return new NextResponse(jsonData, {
+    const response = new NextResponse(jsonData, {
       status: 200,
       headers: {
         "Content-Type": "application/json",
         "Content-Disposition": 'attachment; filename="collection.json"',
       },
     });
+    logRequest(req, startedAt, response, { userId: user.userId });
+    return response;
   } catch (error) {
-    console.error("Error exporting items:", error);
-    return NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    logRequest(req, startedAt, response);
+    return response;
   }
 }

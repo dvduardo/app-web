@@ -29,7 +29,6 @@ export function ImageGalleryModal({
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  // Update currentIndex when initialIndex changes
   useEffect(() => {
     setCurrentIndex(initialIndex);
   }, [initialIndex]);
@@ -51,7 +50,6 @@ export function ImageGalleryModal({
     }
   }, [handleNext, handlePrev, touchEnd, touchStart]);
 
-  // Handle keyboard navigation and ESC key
   useEffect(() => {
     if (!isOpen) return;
 
@@ -101,7 +99,6 @@ export function ImageGalleryModal({
       aria-label="Image gallery"
       aria-modal="true"
     >
-      {/* Close button */}
       <button
         onClick={onClose}
         className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
@@ -111,7 +108,6 @@ export function ImageGalleryModal({
         <X size={32} />
       </button>
 
-      {/* Image container */}
       <div className="flex items-center justify-center w-full h-full px-4">
         <Image
           src={photoSrc}
@@ -123,10 +119,8 @@ export function ImageGalleryModal({
         />
       </div>
 
-      {/* Navigation arrows */}
       {photos.length > 1 && (
         <>
-          {/* Previous button */}
           <button
             onClick={handlePrev}
             className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 p-2 rounded-full hover:bg-black/30"
@@ -136,7 +130,6 @@ export function ImageGalleryModal({
             <ChevronLeft size={32} />
           </button>
 
-          {/* Next button */}
           <button
             onClick={handleNext}
             className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 p-2 rounded-full hover:bg-black/30"
@@ -148,7 +141,6 @@ export function ImageGalleryModal({
         </>
       )}
 
-      {/* Image counter */}
       {photos.length > 1 && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm font-medium bg-black/50 px-4 py-2 rounded-full">
           {currentIndex + 1} / {photos.length}

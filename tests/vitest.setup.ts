@@ -1,4 +1,4 @@
-import { vi, afterEach } from 'vitest'
+import { vi, beforeEach, afterEach } from 'vitest'
 import '@testing-library/jest-dom'
 
 // Setup global

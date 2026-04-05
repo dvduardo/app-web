@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { getPhotoSrc } from "@/lib/photo-helper";
-import { ImageGalleryModal } from "./image-gallery-modal";
+import { ImageGalleryModal } from "@/app/components/ui/image-gallery-modal";
 
 interface Item {
   id: string;
@@ -33,17 +33,20 @@ export function ItemCard({
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   return (
-    <div 
+    <div
       className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden cursor-pointer h-full flex flex-col"
       onClick={() => router.push(`/dashboard/item/${item.id}`)}
     >
       {/* Photo */}
-      <div className="h-32 sm:h-40 md:h-48 bg-gray-200 relative overflow-hidden cursor-pointer" onClick={(e) => {
-        e.stopPropagation();
-        if (item.photos && item.photos.length > 0) {
-          setIsGalleryOpen(true);
-        }
-      }}>
+      <div
+        className="h-32 sm:h-40 md:h-48 bg-gray-200 relative overflow-hidden cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (item.photos && item.photos.length > 0) {
+            setIsGalleryOpen(true);
+          }
+        }}
+      >
         {firstPhoto ? (
           <>
             <Image
@@ -53,7 +56,7 @@ export function ItemCard({
               height={400}
               unoptimized
               className={`w-full h-full object-cover transition-opacity duration-300 ${
-                imageLoaded ? 'opacity-100' : 'opacity-0'
+                imageLoaded ? "opacity-100" : "opacity-0"
               }`}
               onLoad={() => setImageLoaded(true)}
               loading="lazy"
@@ -92,7 +95,6 @@ export function ItemCard({
           </p>
         )}
 
-        {/* Foto counter */}
         {item.photos && item.photos.length > 0 && (
           <div className="text-xs text-gray-500 mt-2">
             {item.photos.length} foto(s)
@@ -111,7 +113,8 @@ export function ItemCard({
           title={`Editar item ${item.title}`}
           className="flex-1 px-3 py-3 sm:py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-center flex items-center justify-center gap-2 transition-colors"
         >
-          <Edit className="w-4 h-4" /> <span className="hidden sm:inline">Editar</span>
+          <Edit className="w-4 h-4" />{" "}
+          <span className="hidden sm:inline">Editar</span>
         </button>
         <button
           onClick={(e) => {
@@ -122,11 +125,11 @@ export function ItemCard({
           title={`Deletar item ${item.title}`}
           className="px-3 py-3 sm:py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 focus:ring-2 focus:ring-offset-2 focus:ring-red-500 flex items-center justify-center gap-2 transition-colors"
         >
-          <Trash2 className="w-4 h-4" /> <span className="hidden sm:inline">Deletar</span>
+          <Trash2 className="w-4 h-4" />{" "}
+          <span className="hidden sm:inline">Deletar</span>
         </button>
       </div>
 
-      {/* Image Gallery Modal */}
       <ImageGalleryModal
         isOpen={isGalleryOpen}
         photos={item.photos || []}

@@ -2,49 +2,74 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/server/db/prisma";
 import { requireUser } from "@/server/auth/require-user";
 import { parseItemInput } from "@/server/validation/items";
+import { logRequest, logRequestError } from "@/server/logging/request";
+
+const ITEMS_PER_PAGE = 12;
 
 export async function GET(req: NextRequest) {
+  const startedAt = Date.now();
   try {
     const auth = await requireUser();
     if (auth.response) {
+      logRequest(req, startedAt, auth.response);
       return auth.response;
     }
 
     const searchParams = req.nextUrl.searchParams;
     const search = searchParams.get("search") || "";
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? String(ITEMS_PER_PAGE), 10)));
 
-    const items = await prisma.item.findMany({
-      where: {
-        userId: auth.user.userId,
-        ...(search && {
-          OR: [
-            { title: { contains: search } },
-            { description: { contains: search } },
-          ],
-        }),
-      },
-      include: {
-        photos: {
-          orderBy: { order: "asc" },
+    const where = {
+      userId: auth.user.userId,
+      deletedAt: null,
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: "insensitive" as const } },
+          { description: { contains: search, mode: "insensitive" as const } },
+        ],
+      }),
+    };
+
+    const [items, totalCount] = await prisma.$transaction([
+      prisma.item.findMany({
+        where,
+        include: {
+          photos: {
+            orderBy: { order: "asc" },
+          },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.item.count({ where }),
+    ]);
 
-    return NextResponse.json({ items }, { status: 200 });
+    const totalPages = Math.ceil(totalCount / limit);
+    const response = NextResponse.json(
+      { items, totalCount, totalPages, page, limit, search },
+      { status: 200 }
+    );
+    logRequest(req, startedAt, response, { userId: auth.user.userId });
+    return response;
   } catch (error) {
-    console.error("Error fetching items:", error);
-    return NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    logRequest(req, startedAt, response);
+    return response;
   }
 }
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
   try {
     const auth = await requireUser();
     if (auth.response) {
+      logRequest(req, startedAt, auth.response);
       return auth.response;
     }
 
@@ -52,10 +77,12 @@ export async function POST(req: NextRequest) {
     const input = parseItemInput(body);
 
     if (!input) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Title is required" },
         { status: 400 }
       );
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
     const item = await prisma.item.create({
@@ -70,12 +97,16 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ item }, { status: 201 });
+    const response = NextResponse.json({ item }, { status: 201 });
+    logRequest(req, startedAt, response, { userId: auth.user.userId });
+    return response;
   } catch (error) {
-    console.error("Error creating item:", error);
-    return NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    logRequest(req, startedAt, response);
+    return response;
   }
 }

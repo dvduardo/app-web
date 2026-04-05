@@ -4,21 +4,28 @@ import { requireUser } from "@/server/auth/require-user";
 import {
   parseItemUpdateInput,
 } from "@/server/validation/items";
+import { logRequest, logRequestError } from "@/server/logging/request";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startedAt = Date.now();
   try {
     const auth = await requireUser();
     if (auth.response) {
+      logRequest(req, startedAt, auth.response);
       return auth.response;
     }
 
     const { id } = await params;
 
-    const item = await prisma.item.findUnique({
-      where: { id },
+    const item = await prisma.item.findFirst({
+      where: {
+        id,
+        userId: auth.user.userId,
+        deletedAt: null,
+      },
       include: {
         photos: {
           orderBy: { order: "asc" },
@@ -26,17 +33,23 @@ export async function GET(
       },
     });
 
-    if (!item || item.userId !== auth.user.userId) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!item) {
+      const response = NextResponse.json({ error: "Not found" }, { status: 404 });
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
-    return NextResponse.json({ item }, { status: 200 });
+    const response = NextResponse.json({ item }, { status: 200 });
+    logRequest(req, startedAt, response, { userId: auth.user.userId });
+    return response;
   } catch (error) {
-    console.error("Error fetching item:", error);
-    return NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    logRequest(req, startedAt, response);
+    return response;
   }
 }
 
@@ -44,9 +57,11 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startedAt = Date.now();
   try {
     const auth = await requireUser();
     if (auth.response) {
+      logRequest(req, startedAt, auth.response);
       return auth.response;
     }
 
@@ -55,12 +70,22 @@ export async function PUT(
     const input = parseItemUpdateInput(body);
 
     if (!input) {
-      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+      const response = NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
-    const item = await prisma.item.findUnique({ where: { id } });
-    if (!item || item.userId !== auth.user.userId) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const item = await prisma.item.findFirst({
+      where: {
+        id,
+        userId: auth.user.userId,
+        deletedAt: null,
+      },
+    });
+    if (!item) {
+      const response = NextResponse.json({ error: "Not found" }, { status: 404 });
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
     const updated = await prisma.item.update({
@@ -81,13 +106,17 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json({ item: updated }, { status: 200 });
+    const response = NextResponse.json({ item: updated }, { status: 200 });
+    logRequest(req, startedAt, response, { userId: auth.user.userId });
+    return response;
   } catch (error) {
-    console.error("Error updating item:", error);
-    return NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    logRequest(req, startedAt, response);
+    return response;
   }
 }
 
@@ -95,27 +124,44 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startedAt = Date.now();
   try {
     const auth = await requireUser();
     if (auth.response) {
+      logRequest(req, startedAt, auth.response);
       return auth.response;
     }
 
     const { id } = await params;
 
-    const item = await prisma.item.findUnique({ where: { id } });
-    if (!item || item.userId !== auth.user.userId) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const item = await prisma.item.findFirst({
+      where: {
+        id,
+        userId: auth.user.userId,
+        deletedAt: null,
+      },
+    });
+    if (!item) {
+      const response = NextResponse.json({ error: "Not found" }, { status: 404 });
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
-    await prisma.item.delete({ where: { id } });
+    await prisma.item.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
 
-    return NextResponse.json({ message: "Item deleted" }, { status: 200 });
+    const response = NextResponse.json({ message: "Item deleted" }, { status: 200 });
+    logRequest(req, startedAt, response, { userId: auth.user.userId });
+    return response;
   } catch (error) {
-    console.error("Error deleting item:", error);
-    return NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    logRequest(req, startedAt, response);
+    return response;
   }
 }

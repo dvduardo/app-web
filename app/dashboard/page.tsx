@@ -3,7 +3,7 @@
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { DashboardContent } from "@/app/components/dashboard-content";
+import { DashboardContent } from "@/app/components/items/dashboard-content";
 import { LogOut, BookOpen } from "lucide-react";
 
 export default function Dashboard() {

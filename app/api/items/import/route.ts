@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/server/auth/require-user";
 import { prisma } from "@/server/db/prisma";
-import { parseItemInput } from "@/server/validation/items";
+import { parseImportedItem } from "@/server/validation/items";
+import { logRequest, logRequestError } from "@/server/logging/request";
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
   try {
     const auth = await requireUser();
     if (auth.response) {
+      logRequest(req, startedAt, auth.response);
       return auth.response;
     }
 
@@ -14,22 +17,19 @@ export async function POST(req: NextRequest) {
     const { items } = body;
 
     if (!Array.isArray(items)) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Items must be an array" },
         { status: 400 }
       );
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
     let importedCount = 0;
 
     for (const rawItem of items) {
-      const item = parseItemInput(rawItem);
+      const item = parseImportedItem(rawItem);
       if (!item) continue;
-
-      const photos =
-        rawItem && typeof rawItem === "object" && Array.isArray(rawItem.photos)
-          ? rawItem.photos
-          : [];
 
       const created = await prisma.item.create({
         data: {
@@ -40,33 +40,33 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      if (Array.isArray(photos)) {
-        for (const photo of photos) {
-          if (photo.data) {
-            await prisma.photo.create({
-              data: {
-                itemId: created.id,
-                data: photo.data,
-                mimeType: photo.mimeType || "image/jpeg",
-                order: photo.order || 0,
-              },
-            });
-          }
-        }
+      for (const photo of item.photos) {
+        await prisma.photo.create({
+          data: {
+            itemId: created.id,
+            data: photo.data,
+            mimeType: photo.mimeType,
+            order: photo.order,
+          },
+        });
       }
 
       importedCount++;
     }
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       { message: `Imported ${importedCount} items`, importedCount },
       { status: 200 }
     );
+    logRequest(req, startedAt, response, { userId: auth.user.userId });
+    return response;
   } catch (error) {
-    console.error("Error importing items:", error);
-    return NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    logRequest(req, startedAt, response);
+    return response;
   }
 }
