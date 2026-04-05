@@ -120,6 +120,8 @@ export async function PUT(
         title: input.title ?? item.title,
         description:
           input.description !== undefined ? input.description : item.description,
+        status: input.status ?? item.status,
+        isFavorite: input.isFavorite ?? item.isFavorite,
         customData:
           input.customData !== undefined
             ? JSON.stringify(input.customData)

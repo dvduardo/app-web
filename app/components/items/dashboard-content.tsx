@@ -4,8 +4,6 @@ import { useDeferredValue, useState } from "react";
 import toast from "react-hot-toast";
 import {
   Plus,
-  Download,
-  Upload,
   Search,
   ChevronLeft,
   ChevronRight,
@@ -14,14 +12,16 @@ import {
   SlidersHorizontal,
   FolderOpen,
   Package2,
+  Heart,
+  Clock3,
 } from "lucide-react";
-import { apiClient } from "@/lib/api-client";
 import Link from "next/link";
 import { ItemCard } from "./item-card";
 import { getErrorMessage } from "@/lib/get-error-message";
 import { useItems } from "@/hooks/use-items";
 import { useCategories } from "@/hooks/use-categories";
 import { getCategoryTheme } from "@/lib/category-theme";
+import { itemStatusOptions } from "@/lib/item-status";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -31,21 +31,34 @@ export function DashboardContent() {
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const deferredSearch = useDeferredValue(search);
   const { categories, refetch: refetchCategories } = useCategories();
   const hasActiveCategory = categories.some(
     (category) => category.id === selectedCategoryId && category.itemCount > 0
   );
   const effectiveCategoryId = hasActiveCategory ? selectedCategoryId : "";
-  const { items, isLoading, error: queryError, refetch, deleteItem, totalPages } =
-    useItems(page, ITEMS_PER_PAGE, deferredSearch.trim(), effectiveCategoryId);
+  const {
+    items,
+    isLoading,
+    error: queryError,
+    deleteItem,
+    updateItem,
+    totalPages,
+    stats,
+  } = useItems(
+    page,
+    ITEMS_PER_PAGE,
+    deferredSearch.trim(),
+    effectiveCategoryId,
+    selectedStatus,
+    favoritesOnly
+  );
   const visibleCategories = categories.filter(
     (category) => category.itemCount > 0
   );
-  const totalItems = visibleCategories.reduce(
-    (count, category) => count + category.itemCount,
-    0
-  );
+  const totalItems = stats.totalItems;
 
   const queryErrorMessage = queryError
     ? getErrorMessage(queryError, "Erro ao carregar itens")
@@ -60,6 +73,16 @@ export function DashboardContent() {
 
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
+    setPage(1);
+  };
+
+  const handleStatusChange = (status: string) => {
+    setSelectedStatus(status);
+    setPage(1);
+  };
+
+  const toggleFavoritesOnly = () => {
+    setFavoritesOnly((currentValue) => !currentValue);
     setPage(1);
   };
 
@@ -81,50 +104,16 @@ export function DashboardContent() {
     }
   };
 
-  const handleExport = async () => {
+  const handleToggleFavorite = async (itemId: string, nextValue: boolean) => {
     try {
-      const response = await fetch("/api/items/export");
-      const text = await response.text();
-      const blob = new Blob([text], { type: "application/json" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "colecao.json";
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success("Lista exportada com sucesso!");
-    } catch {
-      const errorMsg = "Erro ao exportar lista";
+      await updateItem({ itemId, data: { isFavorite: nextValue } });
+      setError("");
+      toast.success(nextValue ? "Favorito salvo" : "Favorito removido");
+    } catch (updateError: unknown) {
+      const errorMsg = getErrorMessage(updateError, "Erro ao atualizar favorito");
       setError(errorMsg);
       toast.error(errorMsg);
     }
-  };
-
-  const handleImportClick = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json";
-    input.onchange = async (event: Event) => {
-      const target = event.target as HTMLInputElement | null;
-      const file = target?.files?.[0];
-      if (!file) return;
-
-      try {
-        const text = await file.text();
-        const data = JSON.parse(text);
-        const response = await apiClient.post("/items/import", { items: data });
-        setError("");
-        toast.success(response.data.message);
-        setPage(1);
-        await refetchCategories();
-        await refetch();
-      } catch (error: unknown) {
-        const errorMsg = getErrorMessage(error, "Erro ao importar lista");
-        setError(errorMsg);
-        toast.error(errorMsg);
-      }
-    };
-    input.click();
   };
 
   return (
@@ -147,7 +136,7 @@ export function DashboardContent() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:min-w-72">
+            <div className="grid grid-cols-2 gap-3 sm:min-w-[24rem]">
               <div className="rounded-3xl border border-white/20 bg-white/10 p-4 backdrop-blur">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-300">
                   Itens
@@ -161,6 +150,18 @@ export function DashboardContent() {
                 <p className="mt-2 text-2xl font-semibold text-white">
                   {visibleCategories.length}
                 </p>
+              </div>
+              <div className="rounded-3xl border border-white/20 bg-white/10 p-4 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-300">
+                  Favoritos
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-white">{stats.favoriteItems}</p>
+              </div>
+              <div className="rounded-3xl border border-white/20 bg-white/10 p-4 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-300">
+                  Wishlist
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-white">{stats.wishlistItems}</p>
               </div>
             </div>
           </div>
@@ -225,7 +226,7 @@ export function DashboardContent() {
 
               <Link
                 href="/dashboard/new"
-                className="hidden items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.01] hover:from-blue-700 hover:to-purple-700 sm:inline-flex"
+                className="items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.01] hover:from-blue-700 hover:to-purple-700 hidden sm:inline-flex"
               >
                 <Plus className="h-4 w-4" /> Novo
               </Link>
@@ -265,6 +266,50 @@ export function DashboardContent() {
               );
             })}
         </div>
+
+        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="flex snap-x gap-2 overflow-x-auto pb-1 mobile-scrollbar">
+            <button
+              type="button"
+              data-active={selectedStatus === ""}
+              onClick={() => handleStatusChange("")}
+              className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors data-[active=true]:border-slate-900 data-[active=true]:bg-slate-900 data-[active=true]:text-white"
+            >
+              Todos os status
+            </button>
+            {itemStatusOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                data-active={selectedStatus === option.value}
+                onClick={() => handleStatusChange(option.value)}
+                className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors data-[active=true]:border-slate-900 data-[active=true]:bg-slate-900 data-[active=true]:text-white"
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleFavoritesOnly}
+            aria-pressed={favoritesOnly}
+            className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+              favoritesOnly
+                ? "border-rose-200 bg-rose-50 text-rose-700"
+                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            <Heart
+              className={`h-4 w-4 transition ${
+                favoritesOnly
+                  ? "fill-rose-500 text-rose-600"
+                  : "text-current"
+              }`}
+            />
+            Somente favoritos
+          </button>
+        </div>
       </section>
 
       {displayedError && (
@@ -284,11 +329,11 @@ export function DashboardContent() {
             <FolderOpen className="h-7 w-7" />
           </div>
           <p className="text-lg font-medium text-slate-700">
-            {search || effectiveCategoryId
+            {search || effectiveCategoryId || selectedStatus || favoritesOnly
               ? "Nenhum item encontrado com os filtros atuais"
               : "Nenhum item ainda"}
           </p>
-          {!search && (
+          {!search && !effectiveCategoryId && !selectedStatus && !favoritesOnly && (
             <Link
               href="/dashboard/new"
               className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-6 py-3 font-medium text-white transition hover:bg-slate-800"
@@ -311,6 +356,7 @@ export function DashboardContent() {
               key={item.id}
               item={item}
               onDelete={handleDelete}
+              onToggleFavorite={handleToggleFavorite}
               viewMode={viewMode}
             />
           ))}
@@ -356,14 +402,23 @@ export function DashboardContent() {
         </div>
       )}
 
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/20 bg-slate-950/70 px-4 py-3 shadow-[0_-18px_50px_-30px_rgba(15,23,42,0.65)] backdrop-blur-xl sm:hidden">
-          <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
-            <button
-              onClick={handleImportClick}
-              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl bg-white/10 px-3 py-2 text-xs font-medium text-white"
-            >
-              <Upload className="h-4 w-4" />
-              Importar
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/20 bg-slate-950/70 px-4 py-3 shadow-[0_-18px_50px_-30px_rgba(15,23,42,0.65)] backdrop-blur-xl sm:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={toggleFavoritesOnly}
+            className={`inline-flex flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 text-xs font-medium ${
+              favoritesOnly ? "bg-rose-500 text-white" : "bg-white/10 text-white"
+            }`}
+          >
+            <Heart
+              className={`h-4 w-4 transition ${
+                favoritesOnly
+                  ? "fill-white text-white"
+                  : "text-current"
+              }`}
+            />
+            Favoritos
           </button>
           <Link
             href="/dashboard/new"
@@ -373,11 +428,14 @@ export function DashboardContent() {
             Novo item
           </Link>
           <button
-            onClick={handleExport}
-            className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl bg-white/10 px-3 py-2 text-xs font-medium text-white"
+            type="button"
+            onClick={() => handleStatusChange(selectedStatus === "wishlist" ? "" : "wishlist")}
+            className={`inline-flex flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 text-xs font-medium ${
+              selectedStatus === "wishlist" ? "bg-amber-400 text-slate-950" : "bg-white/10 text-white"
+            }`}
           >
-            <Download className="h-4 w-4" />
-            Exportar
+            <Clock3 className="h-4 w-4" />
+            Desejos
           </button>
         </div>
       </div>

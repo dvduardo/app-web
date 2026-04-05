@@ -20,6 +20,8 @@ interface ItemResponse {
   } | null;
   title: string;
   description: string | null;
+  status: string;
+  isFavorite: boolean;
   customData: string;
   photos: UploadablePhoto[];
 }
@@ -131,6 +133,8 @@ export default function ItemPage() {
             categoryId: item.categoryId ?? "",
             title: item.title,
             description: item.description ?? "",
+            status: item.status,
+            isFavorite: item.isFavorite,
             customData: defaultCustomData,
           }}
           initialPhotos={item.photos}

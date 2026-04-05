@@ -29,6 +29,8 @@ model Item {
   
   title             String
   description       String?
+  status            String   @default("owned")
+  isFavorite        Boolean  @default(false)
   customData        String   @default("{}")
   deletedAt         DateTime?
   

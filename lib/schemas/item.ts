@@ -29,6 +29,29 @@ function normalizeCustomData(value: unknown) {
   return value ?? {};
 }
 
+function normalizeBoolean(value: unknown) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true") {
+      return true;
+    }
+    if (normalized === "false") {
+      return false;
+    }
+  }
+
+  return value;
+}
+
+export const itemStatusValues = ["owned", "wishlist", "loaned"] as const;
+export const itemStatusSchema = z.enum(itemStatusValues, {
+  error: "Status inválido",
+});
+
 export const itemSchema = z.object({
   categoryId: z.preprocess(
     normalizeString,
@@ -39,6 +62,11 @@ export const itemSchema = z.object({
     z.string().min(1, "Título é obrigatório")
   ),
   description: z.preprocess(normalizeNullableString, z.string().nullable()).default(null),
+  status: z.preprocess(
+    normalizeString,
+    itemStatusSchema.default("owned")
+  ),
+  isFavorite: z.preprocess(normalizeBoolean, z.boolean().default(false)),
   customData: z.preprocess(
     normalizeCustomData,
     z.record(z.string(), z.string()).default({})
@@ -56,6 +84,8 @@ export const itemUpdateSchema = z
       z.string().min(1, "Título é obrigatório")
     ).optional(),
     description: z.preprocess(normalizeNullableString, z.string().nullable()).optional(),
+    status: z.preprocess(normalizeString, itemStatusSchema).optional(),
+    isFavorite: z.preprocess(normalizeBoolean, z.boolean()).optional(),
     customData: z.preprocess(
       normalizeCustomData,
       z.record(z.string(), z.string())
@@ -81,27 +111,6 @@ export const deleteCustomFieldSchema = z.object({
     normalizeString,
     z.string().min(1, "Field ID is required")
   ),
-});
-
-export const photoImportSchema = z.object({
-  data: z.string().min(1),
-  mimeType: z.string().min(1).default("image/jpeg"),
-  order: z.number().int().nonnegative().default(0),
-});
-
-export const importedItemSchema = z.object({
-  categoryId: z.preprocess(normalizeString, z.string().min(1)).optional(),
-  categoryName: z.preprocess(normalizeString, z.string().min(1)).optional(),
-  title: z.preprocess(
-    normalizeString,
-    z.string().min(1, "Título é obrigatório")
-  ),
-  description: z.preprocess(normalizeNullableString, z.string().nullable()).default(null),
-  customData: z.preprocess(
-    normalizeCustomData,
-    z.record(z.string(), z.string()).default({})
-  ),
-  photos: z.array(photoImportSchema).max(2).optional().default([]),
 });
 
 export const categorySchema = z.object({

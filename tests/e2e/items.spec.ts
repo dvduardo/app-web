@@ -1,27 +1,29 @@
 import { test, expect } from '@playwright/test';
-import { generateTestUser, TestUser } from './helpers/auth';
+import { createCategoryViaAPI, createItemViaAPI, generateTestUser, setAuthCookie, TestCategory, TestUser } from './helpers/auth';
 
 test.describe('Gerenciamento de Itens', () => {
   let testUser: TestUser;
+  let testCategory: TestCategory;
 
   test.beforeAll(async ({ request }) => {
     testUser = generateTestUser();
-    await request.post('/api/auth/register', {
+    const response = await request.post('/api/auth/register', {
       data: { name: testUser.name, email: testUser.email, password: testUser.password },
     });
+    const data = await response.json();
+    testUser = { ...testUser, id: data.user.id };
   });
 
   test.beforeEach(async ({ page }) => {
-    await page.request.post('/api/auth/login', {
-      data: { email: testUser.email, password: testUser.password },
-    });
+    await setAuthCookie(page, testUser);
+    testCategory = await createCategoryViaAPI(page, `Categoria Itens ${Date.now()}`);
   });
 
   test.describe('Criar Item', () => {
     test('deve exibir o formulário de novo item', async ({ page }) => {
       await page.goto('/dashboard/new');
 
-      await expect(page.getByText('Novo Item')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Novo Item' })).toBeVisible();
       await expect(page.locator('#title')).toBeVisible();
       await expect(page.locator('#description')).toBeVisible();
       await expect(page.getByRole('button', { name: 'Salvar Item' })).toBeVisible();
@@ -33,13 +35,14 @@ test.describe('Gerenciamento de Itens', () => {
 
       await page.getByRole('button', { name: 'Salvar Item' }).click();
 
-      await expect(page.locator('.text-red-800').first()).toContainText('Título');
+      await expect(page.getByText('Título é obrigatório')).toBeVisible();
     });
 
     test('deve criar um item com sucesso e redirecionar para o dashboard', async ({ page }) => {
       const itemTitle = `Item Teste ${Date.now()}`;
 
       await page.goto('/dashboard/new');
+      await page.selectOption('#categoryId', testCategory.id);
       await page.fill('#title', itemTitle);
       await page.fill('#description', 'Descrição do item de teste');
       await page.getByRole('button', { name: 'Salvar Item' }).click();
@@ -62,13 +65,17 @@ test.describe('Gerenciamento de Itens', () => {
       const originalTitle = `Item Para Editar ${Date.now()}`;
       const updatedTitle = `Item Editado ${Date.now()}`;
 
-      const response = await page.request.post('/api/items', {
-        data: { title: originalTitle, description: 'Descrição original', customData: '{}' },
+      const { item } = await createItemViaAPI(page, {
+          categoryId: testCategory.id,
+          title: originalTitle,
+          description: 'Descrição original',
+          status: 'owned',
+          isFavorite: false,
+          customData: '{}',
       });
-      const { item } = await response.json();
 
       await page.goto(`/dashboard/item/${item.id}`);
-      await expect(page.getByText('Editar Item')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Editar Item' })).toBeVisible();
 
       const titleInput = page.locator('input[placeholder="Ex: Harry Potter"]');
       await titleInput.clear();
@@ -80,10 +87,14 @@ test.describe('Gerenciamento de Itens', () => {
     });
 
     test('deve exibir link para voltar ao dashboard na página de edição', async ({ page }) => {
-      const response = await page.request.post('/api/items', {
-        data: { title: `Item Voltar ${Date.now()}`, description: '', customData: '{}' },
+      const { item } = await createItemViaAPI(page, {
+          categoryId: testCategory.id,
+          title: `Item Voltar ${Date.now()}`,
+          description: '',
+          status: 'owned',
+          isFavorite: false,
+          customData: '{}',
       });
-      const { item } = await response.json();
 
       await page.goto(`/dashboard/item/${item.id}`);
 
@@ -95,11 +106,17 @@ test.describe('Gerenciamento de Itens', () => {
     test('deve deletar um item após confirmar', async ({ page }) => {
       const itemTitle = `Item Para Deletar ${Date.now()}`;
 
-      await page.request.post('/api/items', {
-        data: { title: itemTitle, description: '', customData: '{}' },
+      await createItemViaAPI(page, {
+          categoryId: testCategory.id,
+          title: itemTitle,
+          description: '',
+          status: 'owned',
+          isFavorite: false,
+          customData: '{}',
       });
 
       await page.goto('/dashboard');
+      await expect(page.getByText('Carregando itens...')).not.toBeVisible();
       await expect(page.getByText(itemTitle)).toBeVisible();
 
       page.on('dialog', (dialog) => dialog.accept());
@@ -111,11 +128,17 @@ test.describe('Gerenciamento de Itens', () => {
     test('deve cancelar a exclusão ao recusar o diálogo', async ({ page }) => {
       const itemTitle = `Item Não Deletar ${Date.now()}`;
 
-      await page.request.post('/api/items', {
-        data: { title: itemTitle, description: '', customData: '{}' },
+      await createItemViaAPI(page, {
+          categoryId: testCategory.id,
+          title: itemTitle,
+          description: '',
+          status: 'owned',
+          isFavorite: false,
+          customData: '{}',
       });
 
       await page.goto('/dashboard');
+      await expect(page.getByText('Carregando itens...')).not.toBeVisible();
       await expect(page.getByText(itemTitle)).toBeVisible();
 
       page.on('dialog', (dialog) => dialog.dismiss());

@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Edit, Trash2, Images } from "lucide-react";
+import { Edit, Trash2, Images, Heart, Star } from "lucide-react";
 import { useState } from "react";
 import { getPhotoSrc } from "@/lib/photo-helper";
 import { ImageGalleryModal } from "@/app/components/ui/image-gallery-modal";
 import { getCategoryTheme } from "@/lib/category-theme";
+import { getItemStatusMeta } from "@/lib/item-status";
 
 interface Item {
   id: string;
@@ -17,6 +18,8 @@ interface Item {
   } | null;
   title: string;
   description: string | null;
+  status: string;
+  isFavorite: boolean;
   customData: string;
   photos: Array<{
     id: string;
@@ -29,10 +32,12 @@ interface Item {
 export function ItemCard({
   item,
   onDelete,
+  onToggleFavorite,
   viewMode = "grid",
 }: {
   item: Item;
   onDelete: (id: string) => void;
+  onToggleFavorite: (id: string, nextValue: boolean) => void;
   viewMode?: "grid" | "list";
 }) {
   const firstPhoto = item.photos?.[0];
@@ -41,6 +46,7 @@ export function ItemCard({
   const isListView = viewMode === "list";
   const categoryName = item.category?.name ?? "Sem categoria";
   const categoryTheme = getCategoryTheme(item.category?.name);
+  const statusMeta = getItemStatusMeta(item.status);
   const formattedDate = new Date(item.createdAt).toLocaleDateString("pt-BR");
 
   return (
@@ -98,13 +104,41 @@ export function ItemCard({
             </div>
           )}
 
-          <div className="absolute left-3 top-3">
+          <div className="absolute left-3 top-3 flex max-w-[70%] flex-wrap gap-2">
             <span
               className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold shadow-sm backdrop-blur ${categoryTheme.badge}`}
             >
               {categoryName}
             </span>
+            <span
+              className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold shadow-sm backdrop-blur ${statusMeta.badgeClassName}`}
+            >
+              {statusMeta.shortLabel}
+            </span>
           </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(item.id, !item.isFavorite);
+            }}
+            aria-label={item.isFavorite ? `Remover ${item.title} dos favoritos` : `Favoritar ${item.title}`}
+            title={item.isFavorite ? "Remover dos favoritos" : "Favoritar"}
+            className={`absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur transition ${
+              item.isFavorite
+                ? "border-rose-200 bg-white/95 text-rose-500"
+                : "border-white/50 bg-slate-950/45 text-white hover:bg-slate-950/60"
+            }`}
+          >
+            <Heart
+              className={`h-4 w-4 transition ${
+                item.isFavorite
+                  ? "fill-rose-500 text-rose-500"
+                  : "text-current"
+              }`}
+            />
+          </button>
 
           {item.photos && item.photos.length > 0 && (
             <div className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-slate-950/70 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">
@@ -123,11 +157,24 @@ export function ItemCard({
         <div className={`flex flex-1 flex-col ${isListView ? "min-w-0 p-3.5" : "p-4 sm:p-5"}`}>
           {isListView && (
             <div className="mb-2 flex items-center justify-between gap-2">
-              <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold shadow-sm ${categoryTheme.badge}`}
-              >
-                {categoryName}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold shadow-sm ${categoryTheme.badge}`}
+                >
+                  {categoryName}
+                </span>
+                <span
+                  className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold shadow-sm ${statusMeta.badgeClassName}`}
+                >
+                  {statusMeta.shortLabel}
+                </span>
+                {item.isFavorite && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-semibold text-rose-700 shadow-sm">
+                    <Star className="h-3 w-3 fill-current" />
+                    Favorito
+                  </span>
+                )}
+              </div>
               <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-600">
                 <Images className="h-3 w-3" />
                 {item.photos.length}
@@ -138,6 +185,12 @@ export function ItemCard({
           <h3 className={`font-semibold text-slate-900 ${isListView ? "line-clamp-1 text-base" : "line-clamp-2 text-lg sm:text-xl"}`}>
             {item.title}
           </h3>
+          {!isListView && item.isFavorite && (
+            <div className="mt-2 inline-flex items-center gap-1 self-start rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700">
+              <Star className="h-3.5 w-3.5 fill-current" />
+              Favorito
+            </div>
+          )}
           {item.description && (
             <p className={`text-slate-600 ${isListView ? "mt-1.5 line-clamp-2 text-xs leading-5" : "mt-2 line-clamp-2 text-sm leading-6"}`}>
               {item.description}
@@ -158,7 +211,7 @@ export function ItemCard({
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className={`flex gap-2 ${isListView ? "" : ""}`}>
+          <div className="flex gap-2">
             <Link
               href={`/dashboard/item/${item.id}`}
               aria-label={`Editar item ${item.title}`}

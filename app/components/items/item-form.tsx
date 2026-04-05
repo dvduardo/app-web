@@ -5,13 +5,14 @@ import Link from "next/link";
 import { z } from "zod";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, FolderPlus, Sparkles, Shapes, FileText } from "lucide-react";
+import { ArrowLeft, FolderPlus, Sparkles, Shapes, FileText, Heart, Radio } from "lucide-react";
 import { itemSchema, ItemFormInput } from "@/lib/schemas/item";
 import { UploadablePhoto } from "@/lib/photo-upload";
 import { PhotoUpload } from "./photo-upload";
 import { ImageGalleryModal } from "@/app/components/ui/image-gallery-modal";
 import type { CustomField } from "@/hooks/use-custom-fields";
 import type { Category } from "@/hooks/use-categories";
+import { itemStatusOptions } from "@/lib/item-status";
 
 type ItemFormValues = z.input<typeof itemSchema>;
 const EMPTY_PHOTOS: UploadablePhoto[] = [];
@@ -72,6 +73,8 @@ export function ItemForm({
       categoryId: defaultValues?.categoryId ?? "",
       title: defaultValues?.title ?? "",
       description: defaultValues?.description ?? "",
+      status: defaultValues?.status ?? "owned",
+      isFavorite: defaultValues?.isFavorite ?? false,
       customData: defaultValues?.customData ?? {},
     },
   });
@@ -81,6 +84,8 @@ export function ItemForm({
       categoryId: defaultValues?.categoryId ?? "",
       title: defaultValues?.title ?? "",
       description: defaultValues?.description ?? "",
+      status: defaultValues?.status ?? "owned",
+      isFavorite: defaultValues?.isFavorite ?? false,
       customData: defaultValues?.customData ?? {},
     });
   }, [defaultValues, reset]);
@@ -91,7 +96,11 @@ export function ItemForm({
 
   const displayedError = formError || error;
   const categoryField = register("categoryId");
+  const statusField = register("status");
+  const favoriteField = register("isFavorite");
   const selectedCategoryId = useWatch({ control, name: "categoryId" }) ?? "";
+  const selectedStatus = useWatch({ control, name: "status" }) ?? "owned";
+  const isFavorite = useWatch({ control, name: "isFavorite" }) ?? false;
   const customDataValues =
     (useWatch({ control, name: "customData" }) as Record<string, string> | undefined) ?? {};
   const isEditing = title.toLowerCase().includes("editar");
@@ -199,6 +208,13 @@ export function ItemForm({
         })}
         className="space-y-5"
       >
+        <input type="hidden" {...statusField} value={selectedStatus} />
+        <input
+          type="hidden"
+          {...favoriteField}
+          value={isFavorite ? "true" : "false"}
+        />
+
         <section className="rounded-[1.75rem] border border-slate-200/70 bg-white/85 p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
           <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
             <FolderPlus className="h-4 w-4" />
@@ -304,6 +320,86 @@ export function ItemForm({
                 className={inputClassName}
                 {...register("description")}
               />
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,280px)]">
+              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-4">
+                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <Radio className="h-4 w-4" />
+                  Status do item
+                </div>
+                <div className="grid gap-2">
+                  {itemStatusOptions.map((option) => {
+                    const isActive = selectedStatus === option.value;
+
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() =>
+                          setValue("status", option.value, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          })
+                        }
+                        className={`rounded-2xl border px-4 py-3 text-left transition ${
+                          isActive
+                            ? "border-slate-900 bg-slate-900 text-white"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="text-sm font-semibold">{option.label}</div>
+                        <div className={`mt-1 text-xs ${isActive ? "text-white/75" : "text-slate-500"}`}>
+                          {option.description}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-4">
+                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <Heart className="h-4 w-4" />
+                  Destaque na colecao
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isFavorite}
+                  onClick={() =>
+                    setValue("isFavorite", !isFavorite, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                  className={`flex w-full items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
+                    isFavorite
+                      ? "border-rose-200 bg-rose-50 text-rose-700"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                  }`}
+                >
+                  <div>
+                    <div className="text-sm font-semibold">
+                      {isFavorite ? "Marcado como favorito" : "Marcar como favorito"}
+                    </div>
+                    <div className={`mt-1 text-xs ${isFavorite ? "text-rose-600" : "text-slate-500"}`}>
+                      Use isso para destacar pecas queridas e raridades.
+                    </div>
+                  </div>
+                  <div
+                    className={`flex h-7 w-12 items-center rounded-full p-1 transition ${
+                      isFavorite ? "bg-rose-500" : "bg-slate-300"
+                    }`}
+                  >
+                    <div
+                      className={`h-5 w-5 rounded-full bg-white transition ${
+                        isFavorite ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </section>

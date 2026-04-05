@@ -19,6 +19,8 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const search = searchParams.get("search") || "";
     const categoryId = searchParams.get("categoryId") || "";
+    const status = searchParams.get("status") || "";
+    const favoritesOnly = searchParams.get("favoritesOnly") === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? String(ITEMS_PER_PAGE), 10)));
 
@@ -26,15 +28,22 @@ export async function GET(req: NextRequest) {
       userId: auth.user.userId,
       deletedAt: null,
       ...(categoryId && { categoryId }),
+      ...(status && { status }),
+      ...(favoritesOnly && { isFavorite: true }),
       ...(search && {
         OR: [
-          { title: { contains: search, mode: "insensitive" as const } },
-          { description: { contains: search, mode: "insensitive" as const } },
+          { title: { contains: search } },
+          { description: { contains: search } },
         ],
       }),
     };
 
-    const [items, totalCount] = await prisma.$transaction([
+    const statsWhere = {
+      userId: auth.user.userId,
+      deletedAt: null,
+    };
+
+    const [items, totalCount, totalItems, favoriteItems, wishlistItems, ownedItems, loanedItems] = await prisma.$transaction([
       prisma.item.findMany({
         where,
         include: {
@@ -53,11 +62,33 @@ export async function GET(req: NextRequest) {
         take: limit,
       }),
       prisma.item.count({ where }),
+      prisma.item.count({ where: statsWhere }),
+      prisma.item.count({ where: { ...statsWhere, isFavorite: true } }),
+      prisma.item.count({ where: { ...statsWhere, status: "wishlist" } }),
+      prisma.item.count({ where: { ...statsWhere, status: "owned" } }),
+      prisma.item.count({ where: { ...statsWhere, status: "loaned" } }),
     ]);
 
     const totalPages = Math.ceil(totalCount / limit);
     const response = NextResponse.json(
-      { items, totalCount, totalPages, page, limit, search, categoryId },
+      {
+        items,
+        totalCount,
+        totalPages,
+        page,
+        limit,
+        search,
+        categoryId,
+        status,
+        favoritesOnly,
+        stats: {
+          totalItems,
+          favoriteItems,
+          wishlistItems,
+          ownedItems,
+          loanedItems,
+        },
+      },
       { status: 200 }
     );
     logRequest(req, startedAt, response, { userId: auth.user.userId });
@@ -117,6 +148,8 @@ export async function POST(req: NextRequest) {
         categoryId: input.categoryId,
         title: input.title,
         description: input.description,
+        status: input.status,
+        isFavorite: input.isFavorite,
         customData: JSON.stringify(input.customData),
       },
       include: {

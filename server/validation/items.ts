@@ -2,7 +2,6 @@ import {
   categorySchema,
   customFieldSchema,
   deleteCustomFieldSchema,
-  importedItemSchema,
   itemSchema,
   itemUpdateSchema,
 } from "@/lib/schemas/item";
@@ -29,11 +28,6 @@ export function parseCustomFieldInput(body: unknown): CustomFieldInput | null {
 
 export function parseDeleteCustomFieldInput(body: unknown) {
   const result = deleteCustomFieldSchema.safeParse(body);
-  return result.success ? result.data : null;
-}
-
-export function parseImportedItem(body: unknown) {
-  const result = importedItemSchema.safeParse(body);
   return result.success ? result.data : null;
 }
 
