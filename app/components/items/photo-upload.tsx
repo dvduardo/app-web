@@ -69,17 +69,28 @@ export function PhotoUpload({
   };
 
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Fotos (até {MAX_ITEM_PHOTO_COUNT})
-      </label>
+    <section className="rounded-[1.75rem] border border-slate-200/70 bg-white/80 p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <label className="block text-sm font-semibold text-slate-800">
+            Fotos
+          </label>
+          <p className="mt-1 text-xs text-slate-500">
+            Adicione ate {MAX_ITEM_PHOTO_COUNT} imagens para o item.
+          </p>
+        </div>
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+          {photos.length}/{MAX_ITEM_PHOTO_COUNT}
+        </span>
+      </div>
+
       <div className="space-y-4">
         {photos.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {photos.map((photo, index) => (
               <div
                 key={photo.id ?? `photo-${index}`}
-                className="relative group"
+                className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-slate-100"
               >
                 <button
                   type="button"
@@ -93,16 +104,16 @@ export function PhotoUpload({
                     width={400}
                     height={240}
                     unoptimized
-                    className="w-full h-32 sm:h-40 object-cover rounded-md group-hover:opacity-85 transition-opacity"
+                    className="h-28 w-full object-cover transition-opacity group-hover:opacity-85 sm:h-36"
                   />
                 </button>
                 <button
                   type="button"
                   onClick={() => void onRemove(photo, index)}
-                  className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                  className="absolute right-2 top-2 rounded-full bg-rose-600 px-2 py-1 text-xs font-semibold text-white shadow hover:bg-rose-700"
                   title="Remover foto"
                 >
-                  X
+                  Remover
                 </button>
               </div>
             ))}
@@ -110,7 +121,7 @@ export function PhotoUpload({
         )}
 
         {photos.length < MAX_ITEM_PHOTO_COUNT && (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+          <div className="rounded-[1.5rem] border-2 border-dashed border-slate-300 bg-slate-50/80 p-6">
             <input
               type="file"
               id="photos"
@@ -120,13 +131,13 @@ export function PhotoUpload({
               disabled={disabled}
               className="hidden"
             />
-            <label htmlFor="photos" className="block text-center cursor-pointer">
-              <div className="text-gray-600">
-                <p className="text-sm">Clique para adicionar imagens</p>
-                <p className="text-xs text-gray-500 mt-1">
+            <label htmlFor="photos" className="block cursor-pointer text-center">
+              <div className="text-slate-600">
+                <p className="text-sm font-medium">Toque para adicionar imagens</p>
+                <p className="mt-1 text-xs text-slate-500">
                   {photos.length}/{MAX_ITEM_PHOTO_COUNT} fotos selecionadas
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-slate-500">
                   JPEG, PNG, WEBP ou GIF de até 5MB
                 </p>
               </div>
@@ -134,6 +145,6 @@ export function PhotoUpload({
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

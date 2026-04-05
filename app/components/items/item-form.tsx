@@ -5,6 +5,7 @@ import Link from "next/link";
 import { z } from "zod";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, FolderPlus, Sparkles, Shapes, FileText } from "lucide-react";
 import { itemSchema, ItemFormInput } from "@/lib/schemas/item";
 import { UploadablePhoto } from "@/lib/photo-upload";
 import { PhotoUpload } from "./photo-upload";
@@ -93,6 +94,9 @@ export function ItemForm({
   const selectedCategoryId = useWatch({ control, name: "categoryId" }) ?? "";
   const customDataValues =
     (useWatch({ control, name: "customData" }) as Record<string, string> | undefined) ?? {};
+  const isEditing = title.toLowerCase().includes("editar");
+  const inputClassName =
+    "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none";
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
@@ -159,19 +163,31 @@ export function ItemForm({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{title}</h1>
-        <Link
-          href="/dashboard"
-          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-        >
-          ← Voltar
-        </Link>
-      </div>
+    <div className="space-y-5">
+      <section className="rounded-[2rem] border border-white/20 bg-white/10 p-5 text-white shadow-2xl backdrop-blur-xl sm:p-7">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-2xl">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white/85">
+              <Sparkles className="h-3.5 w-3.5" />
+              {isEditing ? "Ajuste os detalhes do item" : "Crie um novo item para sua coleção"}
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
+            <p className="mt-2 text-sm leading-6 text-white/75 sm:text-base">
+              Organize categoria, descrição, fotos e campos extras em uma experiência mais confortável no mobile.
+            </p>
+          </div>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 self-start rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/15"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Link>
+        </div>
+      </section>
 
       {displayedError && (
-        <div className="rounded-md bg-red-50 p-4 mb-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
           <p className="text-sm font-medium text-red-800">{displayedError}</p>
         </div>
       )}
@@ -181,21 +197,26 @@ export function ItemForm({
           setFormError("");
           await onSubmit(values, photos);
         })}
-        className="space-y-6"
+        className="space-y-5"
       >
-        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+        <section className="rounded-[1.75rem] border border-slate-200/70 bg-white/85 p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
+          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <FolderPlus className="h-4 w-4" />
+            Categoria
+          </div>
+
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
             <div>
               <label
                 htmlFor="categoryId"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="mb-2 block text-sm font-medium text-slate-700"
               >
                 Categoria *
               </label>
               <select
                 id="categoryId"
-                className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.categoryId ? "border-red-400" : "border-gray-300"
+                className={`${inputClassName} ${
+                  errors.categoryId ? "border-red-400" : "border-slate-200"
                 }`}
                 value={selectedCategoryId}
                 onChange={(event) =>
@@ -220,64 +241,72 @@ export function ItemForm({
               )}
             </div>
 
-            <div className="rounded-lg border border-dashed border-slate-300 bg-white p-3">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50/80 p-4">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
                 Nova categoria
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   type="text"
                   value={newCategoryName}
                   onChange={(event) => setNewCategoryName(event.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={`${inputClassName} flex-1`}
                   placeholder="Ex: Livros"
                 />
                 <button
                   type="button"
                   disabled={isCreatingCategory}
                   onClick={() => void handleCreateCategory()}
-                  className="px-4 py-2 bg-slate-900 text-white rounded-md hover:bg-slate-800 disabled:opacity-50"
+                  className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
                 >
                   {isCreatingCategory ? "Criando..." : "Criar"}
                 </button>
               </div>
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-slate-500">
                 Ao criar, ela já fica selecionada para este item.
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-            Título *
-          </label>
-          <input
-            id="title"
-            type="text"
-            placeholder="Ex: Harry Potter"
-            className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              errors.title ? "border-red-400" : "border-gray-300"
-            }`}
-            {...register("title")}
-          />
-          {errors.title && (
-            <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-          )}
-        </div>
+        <section className="rounded-[1.75rem] border border-slate-200/70 bg-white/85 p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
+          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <FileText className="h-4 w-4" />
+            Informacoes principais
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="title" className="mb-2 block text-sm font-medium text-slate-700">
+                Titulo *
+              </label>
+              <input
+                id="title"
+                type="text"
+                placeholder="Ex: Harry Potter"
+                className={`${inputClassName} ${
+                  errors.title ? "border-red-400" : "border-slate-200"
+                }`}
+                {...register("title")}
+              />
+              {errors.title && (
+                <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+              )}
+            </div>
 
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-            Descrição
-          </label>
-          <textarea
-            id="description"
-            rows={3}
-            placeholder="Descrição do item"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            {...register("description")}
-          />
-        </div>
+            <div>
+              <label htmlFor="description" className="mb-2 block text-sm font-medium text-slate-700">
+                Descricao
+              </label>
+              <textarea
+                id="description"
+                rows={4}
+                placeholder="Descricao do item"
+                className={inputClassName}
+                {...register("description")}
+              />
+            </div>
+          </div>
+        </section>
 
         <PhotoUpload
           photos={photos}
@@ -300,24 +329,27 @@ export function ItemForm({
         />
 
         {customFields.length > 0 && (
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Campos Customizados
+          <section className="rounded-[1.75rem] border border-slate-200/70 bg-white/85 p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
+            <h3 className="mb-4 text-lg font-semibold text-slate-900">
+              Campos customizados
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {customFields.map((field) => (
-                <div key={field.id}>
-                  <div className="flex items-center justify-between mb-1">
+                <div
+                  key={field.id}
+                  className="rounded-[1.25rem] border border-slate-200 bg-slate-50/70 p-4"
+                >
+                  <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <label
                       htmlFor={field.fieldName}
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-slate-700"
                     >
                       {field.fieldName}
                     </label>
                     <button
                       type="button"
                       onClick={() => void handleRemoveField(field.id, field.fieldName)}
-                      className="ml-2 px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded hover:bg-red-200 transition"
+                      className="self-start rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700 transition hover:bg-red-200"
                     >
                       Remover
                     </button>
@@ -326,7 +358,7 @@ export function ItemForm({
                     <textarea
                       id={field.fieldName}
                       rows={2}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className={inputClassName}
                       value={customDataValues[field.fieldName] ?? ""}
                       onChange={(event) =>
                         setValue(
@@ -343,7 +375,7 @@ export function ItemForm({
                     <input
                       id={field.fieldName}
                       type={field.fieldType === "select" ? "text" : field.fieldType}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className={inputClassName}
                       value={customDataValues[field.fieldName] ?? ""}
                       onChange={(event) =>
                         setValue(
@@ -360,34 +392,35 @@ export function ItemForm({
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Adicionar Campo Customizado
-          </h3>
+        <section className="rounded-[1.75rem] border border-slate-200/70 bg-white/85 p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
+          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <Shapes className="h-4 w-4" />
+            Adicionar campo customizado
+          </div>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1 block text-sm font-medium text-slate-700">
                 Nome do Campo
               </label>
               <input
                 type="text"
                 value={newFieldName}
                 onChange={(event) => setNewFieldName(event.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className={inputClassName}
                 placeholder="Ex: Data de Leitura"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1 block text-sm font-medium text-slate-700">
                 Tipo
               </label>
               <select
                 value={newFieldType}
                 onChange={(event) => setNewFieldType(event.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className={inputClassName}
               >
                 <option value="text">Texto</option>
                 <option value="textarea">Texto longo</option>
@@ -398,27 +431,29 @@ export function ItemForm({
             <button
               type="button"
               onClick={() => void handleAddField()}
-              className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
             >
               + Adicionar Campo
             </button>
           </div>
-        </div>
+        </section>
 
-        <div className="flex gap-3 border-t pt-6">
+        <div className="sticky bottom-3 z-20 rounded-[1.5rem] border border-white/60 bg-white/90 p-3 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.45)] backdrop-blur">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row">
           <button
             type="submit"
             disabled={isSaving}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="flex-1 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 font-semibold text-white transition hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
           >
             {isSaving ? savingLabel : submitLabel}
           </button>
           <Link
             href="/dashboard"
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 text-center"
+            className="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-center font-medium text-slate-700 transition hover:bg-slate-50"
           >
             {cancelLabel}
           </Link>
+          </div>
         </div>
       </form>
 

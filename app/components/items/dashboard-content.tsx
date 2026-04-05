@@ -11,6 +11,9 @@ import {
   ChevronRight,
   List,
   LayoutGrid,
+  SlidersHorizontal,
+  FolderOpen,
+  Package2,
 } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import Link from "next/link";
@@ -38,6 +41,10 @@ export function DashboardContent() {
     useItems(page, ITEMS_PER_PAGE, deferredSearch.trim(), effectiveCategoryId);
   const visibleCategories = categories.filter(
     (category) => category.itemCount > 0
+  );
+  const totalItems = visibleCategories.reduce(
+    (count, category) => count + category.itemCount,
+    0
   );
 
   const queryErrorMessage = queryError
@@ -122,15 +129,123 @@ export function DashboardContent() {
 
   return (
     <div className="space-y-6">
-      {/* Actions Bar */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-2">
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-white/10 px-5 py-5 text-white shadow-2xl backdrop-blur-xl sm:px-8 sm:py-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.28),transparent_30%),radial-gradient(circle_at_left,rgba(59,130,246,0.24),transparent_28%)]" />
+        <div className="relative flex flex-col gap-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="max-w-2xl">
+              <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white/80 backdrop-blur">
+                <Package2 className="h-3.5 w-3.5" />
+                Biblioteca pessoal em qualquer tela
+              </span>
+              <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">
+                Um dashboard com cara de app para navegar sua coleção no mobile.
+              </h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
+                Busca, filtros e ações principais ficaram mais acessíveis no celular,
+                sem perder a visão ampla no desktop.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:min-w-72">
+              <div className="rounded-3xl border border-white/20 bg-white/10 p-4 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-300">
+                  Itens
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-white">{totalItems}</p>
+              </div>
+              <div className="rounded-3xl border border-white/20 bg-white/10 p-4 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-300">
+                  Categorias
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-white">
+                  {visibleCategories.length}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3 rounded-[1.75rem] border border-white/20 bg-slate-950/20 p-3 backdrop-blur sm:grid-cols-[1.4fr_auto] sm:items-center sm:p-4">
+            <div className="relative">
+              <label htmlFor="search" className="sr-only">
+                Buscar itens
+              </label>
+              <Search
+                className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+                aria-hidden="true"
+              />
+              <input
+                id="search"
+                type="text"
+                placeholder="Buscar por título ou descrição..."
+                aria-label="Buscar itens por título ou descrição"
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full rounded-2xl border border-white/20 bg-white/95 px-4 py-3 pl-11 text-base text-slate-900 shadow-inner shadow-slate-200/70 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:flex">
+              <div
+                className="col-span-2 flex items-center justify-between rounded-2xl border border-white/20 bg-slate-950/35 p-1 sm:col-span-1"
+                role="group"
+                aria-label="Modo de visualização"
+              >
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid")}
+                  aria-pressed={viewMode === "grid"}
+                  aria-label="Exibir em grade"
+                  title="Exibir em grade"
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-[1rem] px-3 py-2 text-sm font-medium transition-colors ${
+                    viewMode === "grid"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-300 hover:text-white"
+                  }`}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  Grade
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  aria-pressed={viewMode === "list"}
+                  aria-label="Exibir em lista"
+                  title="Exibir em lista"
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-[1rem] px-3 py-2 text-sm font-medium transition-colors ${
+                    viewMode === "list"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-300 hover:text-white"
+                  }`}
+                >
+                  <List className="h-4 w-4" />
+                  Lista
+                </button>
+              </div>
+
+              <Link
+                href="/dashboard/new"
+                className="hidden items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.01] hover:from-blue-700 hover:to-purple-700 sm:inline-flex"
+              >
+                <Plus className="h-4 w-4" /> Novo
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-white/25 bg-white/80 p-4 shadow-2xl backdrop-blur-xl sm:p-6">
+        <div className="mb-4 flex items-center gap-2 text-sm font-medium text-slate-600">
+          <SlidersHorizontal className="h-4 w-4" />
+          Filtros rápidos
+        </div>
+
+        <div className="flex snap-x gap-2 overflow-x-auto pb-1 mobile-scrollbar">
             <button
               type="button"
               data-active={effectiveCategoryId === ""}
               onClick={() => handleCategoryChange("")}
-              className="px-3 py-1.5 rounded-full border border-gray-300 bg-white text-sm font-medium text-gray-700 transition-colors data-[active=true]:bg-gray-900 data-[active=true]:text-white data-[active=true]:border-gray-900"
+              className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors data-[active=true]:border-slate-900 data-[active=true]:bg-slate-900 data-[active=true]:text-white"
             >
               Todas
             </button>
@@ -143,107 +258,32 @@ export function DashboardContent() {
                   type="button"
                   data-active={effectiveCategoryId === category.id}
                   onClick={() => handleCategoryChange(category.id)}
-                  className={`px-3 py-1.5 rounded-full border border-gray-300 bg-white text-sm font-medium text-gray-700 transition-colors ${theme.chip}`}
+                  className={`shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors ${theme.chip}`}
                 >
                   {category.name} ({category.itemCount})
                 </button>
               );
             })}
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <div className="w-full sm:flex-1 relative">
-            <label htmlFor="search" className="sr-only">
-              Buscar itens
-            </label>
-            <Search
-              className="absolute left-3 top-3 text-gray-400 w-5 h-5"
-              aria-hidden="true"
-            />
-            <input
-              id="search"
-              type="text"
-              placeholder="Buscar por título ou descrição..."
-              aria-label="Buscar itens por título ou descrição"
-              value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full px-4 py-2 pl-10 bg-white border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-900 placeholder-gray-500"
-            />
-          </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <div
-              className="flex items-center rounded-md border border-gray-300 bg-gray-50 p-1"
-              role="group"
-              aria-label="Modo de visualização"
-            >
-              <button
-                type="button"
-                onClick={() => setViewMode("grid")}
-                aria-pressed={viewMode === "grid"}
-                aria-label="Exibir em grade"
-                title="Exibir em grade"
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === "grid"
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("list")}
-                aria-pressed={viewMode === "list"}
-                aria-label="Exibir em lista"
-                title="Exibir em lista"
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === "list"
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                <List className="w-4 h-4" />
-              </button>
-            </div>
-            <Link
-              href="/dashboard/new"
-              className="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-center font-medium flex items-center justify-center gap-2"
-            >
-              <Plus className="w-4 h-4" /> Novo
-            </Link>
-            <button
-              onClick={handleExport}
-              className="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium flex items-center justify-center gap-2"
-            >
-              <Download className="w-4 h-4" /> Exportar
-            </button>
-            <button
-              onClick={handleImportClick}
-              className="flex-1 sm:flex-none px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-medium flex items-center justify-center gap-2"
-            >
-              <Upload className="w-4 h-4" /> Importar
-            </button>
-          </div>
         </div>
-        </div>
-      </div>
+      </section>
 
-      {/* Error Message */}
       {displayedError && (
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
           <p className="text-sm font-medium text-red-800">{displayedError}</p>
         </div>
       )}
 
-      {/* Items Grid */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando itens...</p>
+        <div className="rounded-[2rem] border border-slate-200/70 bg-white/80 py-14 text-center shadow-[0_22px_55px_-35px_rgba(15,23,42,0.45)] backdrop-blur">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-slate-600">Carregando itens...</p>
         </div>
       ) : items.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg">
-            <p className="text-gray-500 text-lg">
+        <div className="rounded-[2rem] border border-dashed border-slate-300 bg-white/75 px-6 py-14 text-center backdrop-blur">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-500">
+            <FolderOpen className="h-7 w-7" />
+          </div>
+          <p className="text-lg font-medium text-slate-700">
             {search || effectiveCategoryId
               ? "Nenhum item encontrado com os filtros atuais"
               : "Nenhum item ainda"}
@@ -251,8 +291,9 @@ export function DashboardContent() {
           {!search && (
             <Link
               href="/dashboard/new"
-              className="mt-4 inline-block px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-6 py-3 font-medium text-white transition hover:bg-slate-800"
             >
+              <Plus className="h-4 w-4" />
               Criar seu primeiro item
             </Link>
           )}
@@ -261,8 +302,8 @@ export function DashboardContent() {
         <div
           className={
             viewMode === "grid"
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-              : "flex flex-col gap-4"
+              ? "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+              : "flex flex-col gap-3"
           }
         >
           {items.map((item) => (
@@ -276,14 +317,13 @@ export function DashboardContent() {
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 pt-2">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1 || isLoading}
             aria-label="Página anterior"
-            className="p-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="rounded-2xl border border-slate-200 bg-white p-3 text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -295,10 +335,10 @@ export function DashboardContent() {
               disabled={isLoading}
               aria-label={`Página ${p}`}
               aria-current={p === page ? "page" : undefined}
-              className={`w-9 h-9 rounded-md text-sm font-medium border transition-colors ${
+              className={`h-11 w-11 rounded-2xl border text-sm font-medium transition-colors ${
                 p === page
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                  ? "border-slate-900 bg-slate-900 text-white"
+                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
               }`}
             >
               {p}
@@ -309,12 +349,38 @@ export function DashboardContent() {
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages || isLoading}
             aria-label="Próxima página"
-            className="p-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="rounded-2xl border border-slate-200 bg-white p-3 text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       )}
+
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/20 bg-slate-950/70 px-4 py-3 shadow-[0_-18px_50px_-30px_rgba(15,23,42,0.65)] backdrop-blur-xl sm:hidden">
+          <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+            <button
+              onClick={handleImportClick}
+              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl bg-white/10 px-3 py-2 text-xs font-medium text-white"
+            >
+              <Upload className="h-4 w-4" />
+              Importar
+          </button>
+          <Link
+            href="/dashboard/new"
+            className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-2 text-xs font-semibold text-white"
+          >
+            <Plus className="h-4 w-4" />
+            Novo item
+          </Link>
+          <button
+            onClick={handleExport}
+            className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl bg-white/10 px-3 py-2 text-xs font-medium text-white"
+          >
+            <Download className="h-4 w-4" />
+            Exportar
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

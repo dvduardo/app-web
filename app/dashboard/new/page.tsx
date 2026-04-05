@@ -68,8 +68,10 @@ export default function NewItemPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen animated-gradient relative overflow-hidden py-4 sm:py-8">
+      <div className="absolute top-10 left-10 h-40 w-40 rounded-full bg-purple-500/20 blur-3xl float-animation" />
+      <div className="animation-delay-2s absolute bottom-10 right-10 h-52 w-52 rounded-full bg-blue-500/20 blur-3xl float-animation" />
+      <div className="relative mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <ItemForm
           title="Novo Item"
           submitLabel="Salvar Item"
