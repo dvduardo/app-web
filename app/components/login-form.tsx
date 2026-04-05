@@ -1,12 +1,13 @@
 "use client";
 // v2: Modern animated login design
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { useAuth } from "@/app/lib/auth-context";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/frontend/auth/auth-context";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, LogIn, BookOpen } from "lucide-react";
+import { getErrorMessage } from "@/frontend/lib/get-error-message";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -15,6 +16,15 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const success = searchParams.get("success");
+    if (success === "true") {
+      toast.success("✅ Cadastro realizado com sucesso! Faça login agora.");
+      router.replace("/auth/login");
+    }
+  }, [router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,8 +51,8 @@ export function LoginForm() {
       await login(email, password);
       toast.success("✅ Login realizado com sucesso!");
       router.push("/dashboard");
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.error || "Email ou senha incorretos.";
+    } catch (error: unknown) {
+      const errorMsg = getErrorMessage(error, "Email ou senha incorretos.");
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {

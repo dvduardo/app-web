@@ -1,21 +1,17 @@
 'use client';
 
-import { useAuth } from '@/app/lib/auth-context';
+import Image from 'next/image';
+import { useAuth } from '@/frontend/auth/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { apiClient } from '@/app/lib/api-client';
-
-interface CustomField {
-  id: string;
-  fieldName: string;
-  fieldType: string;
-}
+import { apiClient } from '@/frontend/lib/api-client';
+import { getErrorMessage } from '@/frontend/lib/get-error-message';
+import { useCustomFields } from '@/frontend/hooks/use-custom-fields';
 
 export default function NewItemPage() {
   const { user, isLoading, mounted } = useAuth();
   const router = useRouter();
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -27,6 +23,7 @@ export default function NewItemPage() {
   const [newFieldType, setNewFieldType] = useState('text');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const { customFields, addCustomField, removeCustomField } = useCustomFields(Boolean(user));
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -34,34 +31,19 @@ export default function NewItemPage() {
     }
   }, [user, isLoading, router]);
 
-  useEffect(() => {
-    fetchCustomFields();
-  }, []);
-
-  const fetchCustomFields = async () => {
-    try {
-      const response = await apiClient.get('/custom-fields');
-      setCustomFields(response.data?.customFields || []);
-    } catch (err) {
-      console.error('Error fetching custom fields:', err);
-      setCustomFields([]);
-    }
-  };
-
   const handleAddField = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFieldName.trim()) return;
 
     try {
-      const response = await apiClient.post('/custom-fields', {
+      await addCustomField({
         fieldName: newFieldName,
         fieldType: newFieldType,
       });
-      setCustomFields([...customFields, response.data.customField]);
       setNewFieldName('');
       setNewFieldType('text');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Erro ao adicionar campo');
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, 'Erro ao adicionar campo'));
     }
   };
 
@@ -122,17 +104,15 @@ export default function NewItemPage() {
     }
 
     try {
-      await apiClient.delete('/custom-fields', {
-        data: { fieldId },
-      });
-      setCustomFields(customFields.filter((f) => f.id !== fieldId));
-      const { [fieldName]: _, ...newCustomData } = formData.customData;
+      await removeCustomField(fieldId);
+      const newCustomData = { ...formData.customData };
+      delete newCustomData[fieldName];
       setFormData((prev) => ({
         ...prev,
         customData: newCustomData,
       }));
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Erro ao remover campo');
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, 'Erro ao remover campo'));
     }
   };
 
@@ -171,8 +151,8 @@ export default function NewItemPage() {
       }
 
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Erro ao criar item');
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, 'Erro ao criar item'));
     } finally {
       setIsSaving(false);
     }
@@ -273,9 +253,12 @@ export default function NewItemPage() {
               <div className="mt-4 grid grid-cols-2 gap-4">
                 {photoPreview.map((preview, index) => (
                   <div key={index} className="relative">
-                    <img
+                    <Image
                       src={preview}
                       alt={`Preview ${index}`}
+                      width={400}
+                      height={200}
+                      unoptimized
                       className="w-full h-32 object-cover rounded-md"
                     />
                     <button

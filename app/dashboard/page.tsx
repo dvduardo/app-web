@@ -1,10 +1,8 @@
 "use client";
 
-import { useAuth } from "@/app/lib/auth-context";
+import { useAuth } from "@/frontend/auth/auth-context";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { apiClient } from "@/app/lib/api-client";
-import Link from "next/link";
+import { useEffect } from "react";
 import { DashboardContent } from "@/app/components/dashboard-content";
 import { LogOut, BookOpen } from "lucide-react";
 
@@ -68,7 +66,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <DashboardContent userId={user.id} />
+        <DashboardContent />
       </main>
     </div>
   );

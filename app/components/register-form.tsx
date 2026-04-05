@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useAuth } from "@/app/lib/auth-context";
+import { useAuth } from "@/frontend/auth/auth-context";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, User, BookOpen, UserPlus } from "lucide-react";
+import { getErrorMessage } from "@/frontend/lib/get-error-message";
 
 export function RegisterForm() {
   const [name, setName] = useState("");
@@ -55,9 +56,12 @@ export function RegisterForm() {
     try {
       await register(email, password, name);
       toast.success("✅ Conta criada com sucesso!");
-      router.push("/dashboard");
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.error || "Erro ao criar conta. Tente novamente.";
+      router.push("/auth/login?success=true");
+    } catch (error: unknown) {
+      const errorMsg = getErrorMessage(
+        error,
+        "Erro ao criar conta. Tente novamente."
+      );
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {

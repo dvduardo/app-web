@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/app/lib/auth-context";
+import { AuthProvider } from "@/frontend/auth/auth-context";
 
 import { ToastProvider } from "@/app/components/toast-provider";
 import { ClientProvider } from "@/app/components/client-provider";

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/app/lib/auth";
-import { prisma } from "@/app/lib/prisma";
+import { prisma } from "@/backend/db/prisma";
+import { requireUser } from "@/backend/auth/require-user";
+import { parseItemInput } from "@/backend/validation/items";
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      return auth.response;
     }
 
     const searchParams = req.nextUrl.searchParams;
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
 
     const items = await prisma.item.findMany({
       where: {
-        userId: user.userId,
+        userId: auth.user.userId,
         ...(search && {
           OR: [
             { title: { contains: search } },
@@ -42,15 +43,15 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      return auth.response;
     }
 
     const body = await req.json();
-    const { title, description, customData } = body;
+    const input = parseItemInput(body);
 
-    if (!title) {
+    if (!input) {
       return NextResponse.json(
         { error: "Title is required" },
         { status: 400 }
@@ -59,10 +60,10 @@ export async function POST(req: NextRequest) {
 
     const item = await prisma.item.create({
       data: {
-        userId: user.userId,
-        title,
-        description: description || null,
-        customData: customData ? JSON.stringify(customData) : "{}",
+        userId: auth.user.userId,
+        title: input.title,
+        description: input.description,
+        customData: JSON.stringify(input.customData),
       },
       include: {
         photos: true,

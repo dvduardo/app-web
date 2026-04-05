@@ -13,10 +13,18 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
       reportsDirectory: './coverage',
-      include: ['app/lib/**/*.ts', 'app/lib/**/*.tsx'],
+      include: [
+        'frontend/auth/**/*.tsx',
+        'frontend/lib/**/*.ts',
+        'backend/auth/**/*.ts',
+        'backend/db/**/*.ts',
+        'backend/http/**/*.ts',
+        'backend/security/**/*.ts',
+        'app/lib/middleware.ts',
+      ],
       exclude: [
         'node_modules/',
-        'app/lib/__tests__/',
+        'tests/',
         '**/*.test.ts',
         '**/*.test.tsx',
         '**/*.spec.ts',
@@ -32,7 +40,7 @@ export default defineConfig({
     },
 
     // Include patterns
-    include: ['app/lib/**/*.test.ts', 'app/lib/**/*.test.tsx', 'app/lib/**/*.spec.ts', 'app/lib/**/*.spec.tsx'],
+    include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx'],
 
     // Test isolation
     isolate: true,

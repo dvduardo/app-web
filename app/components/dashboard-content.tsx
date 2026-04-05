@@ -1,70 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useDeferredValue, useState } from "react";
 import toast from "react-hot-toast";
 import { Plus, Download, Upload, Search } from "lucide-react";
-import { apiClient } from "@/app/lib/api-client";
+import { apiClient } from "@/frontend/lib/api-client";
 import Link from "next/link";
 import { ItemCard } from "./item-card";
+import { getErrorMessage } from "@/frontend/lib/get-error-message";
+import { useItems } from "@/frontend/hooks/use-items";
 
-interface Item {
-  id: string;
-  title: string;
-  description: string | null;
-  customData: string;
-  photos: Array<{
-    id: string;
-    data: string;
-    mimeType: string;
-  }>;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export function DashboardContent({ userId }: { userId: string }) {
-  const [items, setItems] = useState<Item[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function DashboardContent() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [filteredItems, setFilteredItems] = useState<Item[]>([]);
-
-  useEffect(() => {
-    fetchItems();
-  }, []);
-
-  useEffect(() => {
-    const filtered = items.filter(
-      (item) =>
-        item.title.toLowerCase().includes(search.toLowerCase()) ||
-        (item.description &&
-          item.description.toLowerCase().includes(search.toLowerCase()))
-    );
-    setFilteredItems(filtered);
-  }, [search, items]);
-
-  const fetchItems = async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      const response = await apiClient.get("/items");
-      const newItems = response.data.items;
-      setItems(newItems);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Erro ao carregar itens");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const deferredSearch = useDeferredValue(search);
+  const { items, isLoading, error: queryError, refetch, deleteItem } = useItems();
+  const filteredItems = items.filter(
+    (item) =>
+      item.title.toLowerCase().includes(deferredSearch.toLowerCase()) ||
+      (item.description &&
+        item.description.toLowerCase().includes(deferredSearch.toLowerCase()))
+  );
+  const queryErrorMessage = queryError
+    ? getErrorMessage(queryError, "Erro ao carregar itens")
+    : "";
+  const displayedError = error || queryErrorMessage;
 
   const handleDelete = async (itemId: string) => {
     if (!confirm("Tem certeza que deseja deletar este item?")) return;
 
     try {
-      await apiClient.delete(`/items/${itemId}`);
-      setItems(items.filter((item) => item.id !== itemId));
+      await deleteItem(itemId);
       toast.success("Item deletado com sucesso!");
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.error || "Erro ao deletar item";
+    } catch (error: unknown) {
+      const errorMsg = getErrorMessage(error, "Erro ao deletar item");
       setError(errorMsg);
       toast.error(errorMsg);
     }
@@ -84,7 +52,7 @@ export function DashboardContent({ userId }: { userId: string }) {
       a.click();
       window.URL.revokeObjectURL(url);
       toast.success("Lista exportada com sucesso!");
-    } catch (err) {
+    } catch {
       const errorMsg = "Erro ao exportar lista";
       setError(errorMsg);
       toast.error(errorMsg);
@@ -95,8 +63,9 @@ export function DashboardContent({ userId }: { userId: string }) {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".json";
-    input.onchange = async (e: any) => {
-      const file = e.target.files[0];
+    input.onchange = async (event: Event) => {
+      const target = event.target as HTMLInputElement | null;
+      const file = target?.files?.[0];
       if (!file) return;
 
       try {
@@ -109,9 +78,9 @@ export function DashboardContent({ userId }: { userId: string }) {
 
         setError("");
         toast.success(response.data.message);
-        fetchItems();
-      } catch (err) {
-        const errorMsg = "Erro ao importar lista";
+        await refetch();
+      } catch (error: unknown) {
+        const errorMsg = getErrorMessage(error, "Erro ao importar lista");
         setError(errorMsg);
         toast.error(errorMsg);
       }
@@ -161,9 +130,9 @@ export function DashboardContent({ userId }: { userId: string }) {
       </div>
 
       {/* Error Message */}
-      {error && (
+      {displayedError && (
         <div className="rounded-md bg-red-50 p-4">
-          <p className="text-sm font-medium text-red-800">{error}</p>
+          <p className="text-sm font-medium text-red-800">{displayedError}</p>
         </div>
       )}
 

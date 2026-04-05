@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { verifyPassword } from "@/app/lib/password";
-import { generateToken, setAuthCookie } from "@/app/lib/auth";
-import { addCorsHeaders, handleCorsPreFlight } from "@/app/lib/cors";
+import { prisma } from "@/backend/db/prisma";
+import { verifyPassword } from "@/backend/security/password";
+import { generateToken, setAuthCookie } from "@/backend/auth/jwt";
+import { addCorsHeaders, handleCorsPreFlight } from "@/backend/http/cors";
 
 export async function OPTIONS() {
   return handleCorsPreFlight();

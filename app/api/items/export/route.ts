@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/app/lib/auth";
-import { prisma } from "@/app/lib/prisma";
+import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/backend/auth/jwt";
+import { prisma } from "@/backend/db/prisma";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const user = await getCurrentUser();
     if (!user) {

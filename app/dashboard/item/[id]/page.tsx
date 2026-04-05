@@ -1,30 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { apiClient } from "@/app/lib/api-client";
-import { useAuth } from "@/app/lib/auth-context";
-import { getPhotoSrc } from "@/app/lib/photo-helper";
+import { apiClient } from "@/frontend/lib/api-client";
+import { useAuth } from "@/frontend/auth/auth-context";
+import { getPhotoSrc } from "@/frontend/lib/photo-helper";
 import { ImageGalleryModal } from "@/app/components/image-gallery-modal";
 import Link from "next/link";
-
-interface Item {
-  id: string;
-  title: string;
-  description: string | null;
-  customData: string;
-  photos: Array<{
-    id: string;
-    data: string;
-    mimeType: string;
-  }>;
-}
-
-interface CustomField {
-  id: string;
-  fieldName: string;
-  fieldType: string;
-}
+import { getErrorMessage } from "@/frontend/lib/get-error-message";
+import { useCustomFields } from "@/frontend/hooks/use-custom-fields";
 
 export default function ItemPage() {
   const params = useParams();
@@ -33,11 +18,9 @@ export default function ItemPage() {
   const router = useRouter();
   const { user, isLoading: authLoading, mounted } = useAuth();
 
-  const [item, setItem] = useState<Item | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [customData, setCustomData] = useState<Record<string, string>>({});
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [newFieldName, setNewFieldName] = useState("");
   const [newFieldType, setNewFieldType] = useState("text");
   const [photos, setPhotos] = useState<Array<{
@@ -51,24 +34,14 @@ export default function ItemPage() {
   const [error, setError] = useState("");
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryInitialIndex, setGalleryInitialIndex] = useState(0);
+  const { customFields, addCustomField, removeCustomField } = useCustomFields(
+    Boolean(user)
+  );
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/auth/login");
-      return;
-    }
-
-    if (!isNew) {
-      fetchItem();
-    }
-    fetchCustomFields();
-  }, [isNew, user, authLoading, router]);
-
-  const fetchItem = async () => {
+  const fetchItem = useCallback(async () => {
     try {
       const response = await apiClient.get(`/items/${itemId}`);
       const itemData = response.data.item;
-      setItem(itemData);
       setTitle(itemData.title);
       setDescription(itemData.description || "");
       setPhotos(itemData.photos || []);
@@ -80,22 +53,23 @@ export default function ItemPage() {
       } catch {
         setCustomData({});
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Erro ao carregar item");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Erro ao carregar item"));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [itemId]);
 
-  const fetchCustomFields = async () => {
-    try {
-      const response = await apiClient.get("/custom-fields");
-      console.log("Custom fields carregados:", response.data.customFields);
-      setCustomFields(response.data.customFields || []);
-    } catch (err) {
-      console.error("Erro ao carregar campos customizados:", err);
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/auth/login");
+      return;
     }
-  };
+
+    if (!isNew) {
+      void fetchItem();
+    }
+  }, [authLoading, fetchItem, isNew, router, user]);
 
   const handleAddField = async () => {
     if (!newFieldName.trim()) {
@@ -104,19 +78,18 @@ export default function ItemPage() {
     }
 
     try {
-      const response = await apiClient.post("/custom-fields", {
+      await addCustomField({
         fieldName: newFieldName,
         fieldType: newFieldType,
       });
-      setCustomFields([...customFields, response.data.customField]);
       setNewFieldName("");
       setNewFieldType("text");
       setCustomData({
         ...customData,
         [newFieldName]: "",
       });
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Erro ao criar campo");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Erro ao criar campo"));
     }
   };
 
@@ -126,14 +99,12 @@ export default function ItemPage() {
     }
 
     try {
-      await apiClient.delete("/custom-fields", {
-        data: { fieldId },
-      });
-      setCustomFields(customFields.filter((f) => f.id !== fieldId));
-      const { [fieldName]: _, ...newCustomData } = customData;
+      await removeCustomField(fieldId);
+      const newCustomData = { ...customData };
+      delete newCustomData[fieldName];
       setCustomData(newCustomData);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Erro ao remover campo");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Erro ao remover campo"));
     }
   };
 
@@ -146,19 +117,13 @@ export default function ItemPage() {
       return;
     }
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setPhotos([
-          ...photos,
-          {
-            file,
-            mimeType: file.type,
-          },
-        ]);
-      };
-      reader.readAsDataURL(file);
-    });
+    setPhotos((currentPhotos) => [
+      ...currentPhotos,
+      ...Array.from(files).map((file) => ({
+        file,
+        mimeType: file.type,
+      })),
+    ]);
   };
 
   const handleRemovePhoto = async (photoId: string) => {
@@ -170,7 +135,7 @@ export default function ItemPage() {
     try {
       await apiClient.delete(`/items/${itemId}/photos/${photoId}`);
       setPhotos(photos.filter((p) => p.id !== photoId));
-    } catch (err) {
+    } catch {
       setError("Erro ao remover foto");
     }
   };
@@ -224,8 +189,8 @@ export default function ItemPage() {
 
         router.push("/dashboard");
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Erro ao salvar item");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Erro ao salvar item"));
     } finally {
       setIsSaving(false);
     }
@@ -307,9 +272,12 @@ export default function ItemPage() {
                         setGalleryInitialIndex(idx);
                         setGalleryOpen(true);
                       }}>
-                        <img
+                        <Image
                           src={getPhotoSrc(photo)}
                           alt="Preview"
+                          width={400}
+                          height={240}
+                          unoptimized
                           className="w-full h-32 sm:h-40 object-cover rounded-md group-hover:opacity-75 transition-opacity"
                         />
                         <button

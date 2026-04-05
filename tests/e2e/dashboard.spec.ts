@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { generateTestUser, registerAndLogin, TestUser } from './helpers/auth';
+import { generateTestUser, TestUser } from './helpers/auth';
 
 test.describe('Dashboard', () => {
   test('deve redirecionar usuários não autenticados para o login', async ({ page }) => {

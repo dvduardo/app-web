@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/app/lib/auth";
-import { prisma } from "@/app/lib/prisma";
+import { prisma } from "@/backend/db/prisma";
+import { requireUser } from "@/backend/auth/require-user";
+import { parseCustomFieldInput } from "@/backend/validation/items";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      return auth.response;
     }
 
     const customFields = await prisma.customField.findMany({
-      where: { userId: user.userId },
+      where: { userId: auth.user.userId },
       orderBy: { createdAt: "asc" },
     });
 
@@ -26,15 +27,15 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      return auth.response;
     }
 
     const body = await req.json();
-    const { fieldName, fieldType } = body;
+    const input = parseCustomFieldInput(body);
 
-    if (!fieldName) {
+    if (!input) {
       return NextResponse.json(
         { error: "Field name is required" },
         { status: 400 }
@@ -45,8 +46,8 @@ export async function POST(req: NextRequest) {
     const existing = await prisma.customField.findUnique({
       where: {
         userId_fieldName: {
-          userId: user.userId,
-          fieldName,
+          userId: auth.user.userId,
+          fieldName: input.fieldName,
         },
       },
     });
@@ -60,9 +61,9 @@ export async function POST(req: NextRequest) {
 
     const customField = await prisma.customField.create({
       data: {
-        userId: user.userId,
-        fieldName,
-        fieldType: fieldType || "text",
+        userId: auth.user.userId,
+        fieldName: input.fieldName,
+        fieldType: input.fieldType,
       },
     });
 
@@ -78,9 +79,9 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      return auth.response;
     }
 
     const body = await req.json();
@@ -98,7 +99,7 @@ export async function DELETE(req: NextRequest) {
       where: { id: fieldId },
     });
 
-    if (!customField || customField.userId !== user.userId) {
+    if (!customField || customField.userId !== auth.user.userId) {
       return NextResponse.json(
         { error: "Field not found or unauthorized" },
         { status: 404 }

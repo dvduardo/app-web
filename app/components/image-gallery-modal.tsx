@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { getPhotoSrc } from "@/app/lib/photo-helper";
+import { getPhotoSrc } from "@/frontend/lib/photo-helper";
 
 interface Photo {
   id?: string;
@@ -33,6 +34,23 @@ export function ImageGalleryModal({
     setCurrentIndex(initialIndex);
   }, [initialIndex]);
 
+  const handleNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % photos.length);
+  }, [photos.length]);
+
+  const handlePrev = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length);
+  }, [photos.length]);
+
+  const handleSwipe = useCallback(() => {
+    if (touchStart - touchEnd > 75) {
+      handleNext();
+    }
+    if (touchEnd - touchStart > 75) {
+      handlePrev();
+    }
+  }, [handleNext, handlePrev, touchEnd, touchStart]);
+
   // Handle keyboard navigation and ESC key
   useEffect(() => {
     if (!isOpen) return;
@@ -49,9 +67,8 @@ export function ImageGalleryModal({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, currentIndex, onClose]);
+  }, [handleNext, handlePrev, isOpen, onClose]);
 
-  // Handle touch/swipe navigation
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
   };
@@ -59,25 +76,6 @@ export function ImageGalleryModal({
   const handleTouchEnd = (e: React.TouchEvent) => {
     setTouchEnd(e.changedTouches[0].clientX);
     handleSwipe();
-  };
-
-  const handleSwipe = () => {
-    if (touchStart - touchEnd > 75) {
-      // Swiped left → next image
-      handleNext();
-    }
-    if (touchEnd - touchStart > 75) {
-      // Swiped right → previous image
-      handlePrev();
-    }
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % photos.length);
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length);
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -115,9 +113,12 @@ export function ImageGalleryModal({
 
       {/* Image container */}
       <div className="flex items-center justify-center w-full h-full px-4">
-        <img
+        <Image
           src={photoSrc}
           alt={`Image ${currentIndex + 1} of ${photos.length}`}
+          width={1600}
+          height={1200}
+          unoptimized
           className="max-h-screen max-w-full object-contain"
         />
       </div>

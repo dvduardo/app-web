@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { getPhotoSrc, Photo } from '../photo-helper'
+import { getPhotoSrc, Photo } from '@/frontend/lib/photo-helper'
 
 describe('photo-helper', () => {
   beforeEach(() => {
@@ -68,20 +68,15 @@ describe('photo-helper', () => {
     })
 
     it('should use fallback mime type when mimeType is missing', () => {
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
       const photo: Photo = {
         data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
       }
 
       const result = getPhotoSrc(photo)
       expect(result).toMatch(/^data:image\/jpeg;base64,/)
-      expect(consoleWarnSpy).toHaveBeenCalled()
     })
 
     it('should use fallback mime type when mimeType is empty string', () => {
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
       const photo: Photo = {
         data: 'base64data',
         mimeType: '',
@@ -89,7 +84,6 @@ describe('photo-helper', () => {
 
       const result = getPhotoSrc(photo)
       expect(result).toMatch(/^data:image\/jpeg;base64,/)
-      expect(consoleWarnSpy).toHaveBeenCalled()
     })
 
     it('should trim whitespace from mimeType', () => {

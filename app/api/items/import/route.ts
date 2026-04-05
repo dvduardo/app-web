@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/app/lib/auth";
-import { prisma } from "@/app/lib/prisma";
+import { requireUser } from "@/backend/auth/require-user";
+import { prisma } from "@/backend/db/prisma";
+import { parseItemInput } from "@/backend/validation/items";
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      return auth.response;
     }
 
     const body = await req.json();
@@ -21,17 +22,21 @@ export async function POST(req: NextRequest) {
 
     let importedCount = 0;
 
-    for (const item of items) {
-      const { title, description, customData, photos } = item;
+    for (const rawItem of items) {
+      const item = parseItemInput(rawItem);
+      if (!item) continue;
 
-      if (!title) continue;
+      const photos =
+        rawItem && typeof rawItem === "object" && Array.isArray(rawItem.photos)
+          ? rawItem.photos
+          : [];
 
       const created = await prisma.item.create({
         data: {
-          userId: user.userId,
-          title,
-          description: description || null,
-          customData: customData ? JSON.stringify(customData) : "{}",
+          userId: auth.user.userId,
+          title: item.title,
+          description: item.description,
+          customData: JSON.stringify(item.customData),
         },
       });
 

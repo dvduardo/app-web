@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/app/lib/auth";
-import { prisma } from "@/app/lib/prisma";
+import { prisma } from "@/backend/db/prisma";
+import { requireUser } from "@/backend/auth/require-user";
+import {
+  parseItemUpdateInput,
+} from "@/backend/validation/items";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      return auth.response;
     }
 
     const { id } = await params;
@@ -23,7 +26,7 @@ export async function GET(
       },
     });
 
-    if (!item || item.userId !== user.userId) {
+    if (!item || item.userId !== auth.user.userId) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
@@ -42,27 +45,34 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      return auth.response;
     }
 
     const { id } = await params;
     const body = await req.json();
-    const { title, description, customData } = body;
+    const input = parseItemUpdateInput(body);
+
+    if (!input) {
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    }
 
     const item = await prisma.item.findUnique({ where: { id } });
-    if (!item || item.userId !== user.userId) {
+    if (!item || item.userId !== auth.user.userId) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
     const updated = await prisma.item.update({
       where: { id },
       data: {
-        title: title || item.title,
-        description: description !== undefined ? description : item.description,
+        title: input.title ?? item.title,
+        description:
+          input.description !== undefined ? input.description : item.description,
         customData:
-          customData !== undefined ? JSON.stringify(customData) : item.customData,
+          input.customData !== undefined
+            ? JSON.stringify(input.customData)
+            : item.customData,
       },
       include: {
         photos: {
@@ -86,15 +96,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      return auth.response;
     }
 
     const { id } = await params;
 
     const item = await prisma.item.findUnique({ where: { id } });
-    if (!item || item.userId !== user.userId) {
+    if (!item || item.userId !== auth.user.userId) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 

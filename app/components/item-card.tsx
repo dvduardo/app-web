@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Edit, Trash2 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { getPhotoSrc } from "@/app/lib/photo-helper";
+import { useState } from "react";
+import { getPhotoSrc } from "@/frontend/lib/photo-helper";
 import { ImageGalleryModal } from "./image-gallery-modal";
 
 interface Item {
@@ -45,9 +46,12 @@ export function ItemCard({
       }}>
         {firstPhoto ? (
           <>
-            <img
+            <Image
               src={getPhotoSrc(firstPhoto)}
               alt={item.title}
+              width={600}
+              height={400}
+              unoptimized
               className={`w-full h-full object-cover transition-opacity duration-300 ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}

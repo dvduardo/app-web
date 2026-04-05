@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/app/lib/auth";
-import { prisma } from "@/app/lib/prisma";
+import { requireUser } from "@/backend/auth/require-user";
+import { prisma } from "@/backend/db/prisma";
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; photoId: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      return auth.response;
     }
 
     const { id, photoId } = await params;
 
     const item = await prisma.item.findUnique({ where: { id } });
-    if (!item || item.userId !== user.userId) {
+    if (!item || item.userId !== auth.user.userId) {
       return NextResponse.json({ error: "Item not found" }, { status: 404 });
     }
 

@@ -131,7 +131,7 @@ test.describe('Autenticação', () => {
       await expect(page.locator('.text-red-800').first()).toContainText('Nome');
     });
 
-    test('deve cadastrar com sucesso e redirecionar para o dashboard', async ({ page }) => {
+    test('deve cadastrar com sucesso e redirecionar para a tela de login', async ({ page }) => {
       const user = generateTestUser();
 
       await page.goto('/auth/register');
@@ -141,8 +141,10 @@ test.describe('Autenticação', () => {
       await page.fill('#confirmPassword', user.password);
       await page.getByRole('button', { name: 'Criar Conta' }).click();
 
-      await expect(page).toHaveURL('/dashboard');
-      await expect(page.getByText('Minhas Coleções')).toBeVisible();
+      // Deve redirecionar para login com success param
+      await expect(page).toHaveURL('/auth/login');
+      // A mensagem de sucesso deve aparecer (toast)
+      await expect(page.getByText(/Cadastro realizado com sucesso/i)).toBeVisible();
     });
 
     test('deve navegar para a página de login', async ({ page }) => {

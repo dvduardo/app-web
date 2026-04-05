@@ -17,7 +17,7 @@ Aplicação web PWA para gestão de coleções pessoais com autenticação segur
 |-----------|--------|
 | **Framework** | Next.js 16.2.1 + React 19.2.4 |
 | **Linguagem** | TypeScript 5 |
-| **Banco de Dados** | Prisma ORM 5.18 + SQLite/PostgreSQL |
+| **Banco de Dados** | Prisma ORM 5.18 + SQLite |
 | **Estilo** | Tailwind CSS 4 + Lucide React |
 | **State** | TanStack React Query 5.96 |
 | **HTTP** | Axios 1.14 |
@@ -75,6 +75,19 @@ app/
 ├── dashboard/           → Dashboard principal + detalhe de itens
 ├── components/          → Componentes reutilizáveis (forms, cards, providers)
 └── lib/                 → Lógica compartilhada (auth, API, helpers, tipos)
+
+frontend/
+├── hooks/               → Hooks de dados e estado da interface
+├── lib/                 → Utilitários voltados ao cliente
+└── providers/           → Providers do frontend
+
+backend/
+├── auth/                → Helpers de autenticação/autorização
+├── scripts/             → Scripts de execução
+└── validation/          → Validação e parsing da API
+
+tests/
+└── e2e/                 → Testes end-to-end com Playwright
 ```
 
 ## 🔧 Variáveis de Ambiente
@@ -82,8 +95,8 @@ app/
 Crie um arquivo `.env.local` na raiz do projeto:
 
 ```env
-# Banco de dados (SQLite local, PostgreSQL em produção)
-DATABASE_URL="file:./prisma/dev.db"
+# Banco de dados (SQLite)
+DATABASE_URL="file:./dev.db"
 
 # Autenticação
 JWT_SECRET="sua-chave-secreta-super-segura"
@@ -119,4 +132,4 @@ MIT
 
 ---
 
-**Precisa de ajuda?** Verifique os testes em `/e2e` e `/lib/__tests__/` para exemplos de como usar a API e componentes.
+**Precisa de ajuda?** Verifique os testes em `/tests/e2e` e `/app/lib/__tests__/` para exemplos de como usar a API e componentes.

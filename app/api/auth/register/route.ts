@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { hashPassword, verifyPassword } from "@/app/lib/password";
-import { generateToken, setAuthCookie } from "@/app/lib/auth";
-import { addCorsHeaders, handleCorsPreFlight } from "@/app/lib/cors";
+import { prisma } from "@/backend/db/prisma";
+import { hashPassword } from "@/backend/security/password";
+import { addCorsHeaders, handleCorsPreFlight } from "@/backend/http/cors";
 
 export async function OPTIONS() {
   return handleCorsPreFlight();
@@ -20,8 +19,6 @@ export async function POST(req: NextRequest) {
       ));
     }
 
-    console.log("Attempting to register user:", email);
-
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return addCorsHeaders(NextResponse.json(
@@ -30,23 +27,14 @@ export async function POST(req: NextRequest) {
       ));
     }
 
-    console.log("User does not exist, hashing password...");
     const hashedPassword = await hashPassword(password);
-    
-    console.log("Creating user in database...");
+
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
       },
-    });
-
-    console.log("User created successfully:", user.id);
-
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
     });
 
     const response = NextResponse.json(
@@ -60,13 +48,11 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
 
-    await setAuthCookie(token);
     return addCorsHeaders(response);
   } catch (error) {
     console.error("Registration error:", error);
-    console.error("Error stack:", error instanceof Error ? error.stack : String(error));
     return addCorsHeaders(NextResponse.json(
-      { error: "Internal server error", details: error instanceof Error ? error.message : String(error) },
+      { error: "Internal server error" },
       { status: 500 }
     ));
   }

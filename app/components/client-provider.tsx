@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
+import { QueryProvider } from '@/frontend/providers/query-provider';
 
 export function ClientProvider({ children }: { children: ReactNode }) {
   // Handle unhandled promise rejections
@@ -19,5 +20,5 @@ export function ClientProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  return <>{children}</>;
+  return <QueryProvider>{children}</QueryProvider>;
 }

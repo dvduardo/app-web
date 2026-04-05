@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
-import { AuthProvider, useAuth } from '../auth-context'
-import * as apiClientModule from '../api-client'
+import { AuthProvider, useAuth } from '@/frontend/auth/auth-context'
+import * as apiClientModule from '@/frontend/lib/api-client'
 
 // Mock api-client
-vi.mock('../api-client', () => ({
+vi.mock('@/frontend/lib/api-client', () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),
@@ -265,7 +265,7 @@ describe('AuthContext', () => {
       })
     })
 
-    it('should set user after successful register', async () => {
+    it('should not set user after register (requires explicit login)', async () => {
       const mockApiClient = apiClientModule.apiClient as any
       mockApiClient.get.mockResolvedValueOnce({ data: { user: null } })
       const mockUser = { id: '2', email: 'new@example.com', name: 'New User' }
@@ -285,8 +285,9 @@ describe('AuthContext', () => {
         getByTestId('register-btn').click()
       })
 
+      // User should still be null after registration (no auto-authentication)
       await waitFor(() => {
-        expect(getByTestId('user')).toHaveTextContent('New User (new@example.com)')
+        expect(getByTestId('user')).toHaveTextContent('no user')
       })
     })
   })

@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import * as authModule from '../auth'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock jsonwebtoken before importing anything that uses it
 vi.mock('jsonwebtoken', async (importOriginal) => {
@@ -10,9 +9,6 @@ vi.mock('jsonwebtoken', async (importOriginal) => {
     verify: vi.fn(),
   }
 })
-
-// Import types after mocking
-import type { JWTPayload } from '../auth'
 
 // Mock next/headers
 vi.mock('next/headers', () => ({
@@ -35,7 +31,7 @@ describe('auth', () => {
         email: 'test@example.com',
       }
 
-      const { generateToken } = await import('../auth')
+      const { generateToken } = await import('@/backend/auth/jwt')
       const token = generateToken(payload)
 
       // Token should be a string with JWT format (three parts separated by dots)
@@ -49,7 +45,7 @@ describe('auth', () => {
         email: 'another@example.com',
       }
 
-      const { generateToken } = await import('../auth')
+      const { generateToken } = await import('@/backend/auth/jwt')
       const token = generateToken(payload)
 
       // Should return a valid JWT token string
@@ -66,7 +62,7 @@ describe('auth', () => {
         email: 'test@example.com',
       }
 
-      const { generateToken, verifyToken } = await import('../auth')
+      const { generateToken, verifyToken } = await import('@/backend/auth/jwt')
       const token = generateToken(payload)
       const result = verifyToken(token)
 
@@ -84,7 +80,7 @@ describe('auth', () => {
         throw new Error('JsonWebTokenError: invalid token')
       })
 
-      const { verifyToken } = await import('../auth')
+      const { verifyToken } = await import('@/backend/auth/jwt')
       const result = verifyToken(token)
 
       expect(result).toBeNull()
@@ -98,7 +94,7 @@ describe('auth', () => {
         throw new Error('TokenExpiredError: jwt expired')
       })
 
-      const { verifyToken } = await import('../auth')
+      const { verifyToken } = await import('@/backend/auth/jwt')
       const result = verifyToken(token)
 
       expect(result).toBeNull()
@@ -116,7 +112,7 @@ describe('auth', () => {
 
       vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
 
-      const { getCurrentUser } = await import('../auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       const user = await getCurrentUser()
 
       expect(user).toBeNull()
@@ -137,7 +133,7 @@ describe('auth', () => {
         throw new Error('Invalid token')
       })
 
-      const { getCurrentUser } = await import('../auth')
+      const { getCurrentUser } = await import('@/backend/auth/jwt')
       const user = await getCurrentUser()
 
       expect(user).toBeNull()
@@ -155,7 +151,7 @@ describe('auth', () => {
 
       vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
 
-      const { getTokenFromCookies } = await import('../auth')
+      const { getTokenFromCookies } = await import('@/backend/auth/jwt')
       const token = await getTokenFromCookies()
 
       expect(token).toBe('token-from-cookies')
@@ -172,7 +168,7 @@ describe('auth', () => {
 
       vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
 
-      const { getTokenFromCookies } = await import('../auth')
+      const { getTokenFromCookies } = await import('@/backend/auth/jwt')
       const token = await getTokenFromCookies()
 
       expect(token).toBeNull()
@@ -190,7 +186,7 @@ describe('auth', () => {
 
       vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
 
-      const { setAuthCookie } = await import('../auth')
+      const { setAuthCookie } = await import('@/backend/auth/jwt')
       await setAuthCookie('new-token')
 
       expect(mockCookies.set).toHaveBeenCalledWith(
@@ -216,7 +212,7 @@ describe('auth', () => {
 
       vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
 
-      const { clearAuthCookie } = await import('../auth')
+      const { clearAuthCookie } = await import('@/backend/auth/jwt')
       await clearAuthCookie()
 
       expect(mockCookies.delete).toHaveBeenCalledWith('auth')

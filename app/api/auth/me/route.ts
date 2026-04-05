@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/app/lib/auth";
-import { prisma } from "@/app/lib/prisma";
-import { addCorsHeaders, handleCorsPreFlight } from "@/app/lib/cors";
+import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/backend/auth/jwt";
+import { prisma } from "@/backend/db/prisma";
+import { addCorsHeaders, handleCorsPreFlight } from "@/backend/http/cors";
 
 export async function OPTIONS() {
   return handleCorsPreFlight();
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const user = await getCurrentUser();
   if (!user) {
     return addCorsHeaders(NextResponse.json({ user: null }, { status: 200 }));
