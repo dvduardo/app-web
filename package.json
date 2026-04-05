@@ -5,16 +5,18 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node scripts/start.js",
+    "start": "node server/scripts/start.mjs",
+    "seed": "tsx server/scripts/seed.ts",
     "lint": "eslint",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage --run",
-    "test:e2e": "playwright test",
+    "test": "vitest --config tests/vitest.config.ts",
+    "test:watch": "vitest --config tests/vitest.config.ts --watch",
+    "test:coverage": "vitest --config tests/vitest.config.ts --coverage --run",
+    "test:e2e": "playwright test --config tests/playwright.config.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-query": "^5.96.0",
     "axios": "^1.14.0",
     "bcryptjs": "^3.0.3",
@@ -22,9 +24,12 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.7.0",
     "next": "16.2.1",
+    "pino": "^10.3.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-hot-toast": "^2.6.0"
+    "react-hook-form": "^7.72.1",
+    "react-hot-toast": "^2.6.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",

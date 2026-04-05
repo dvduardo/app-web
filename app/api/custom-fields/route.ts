@@ -1,120 +1,151 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/app/lib/auth";
-import { prisma } from "@/app/lib/prisma";
+import { prisma } from "@/server/db/prisma";
+import { requireUser } from "@/server/auth/require-user";
+import {
+  parseCustomFieldInput,
+  parseDeleteCustomFieldInput,
+} from "@/server/validation/items";
+import { logRequest, logRequestError } from "@/server/logging/request";
 
 export async function GET(req: NextRequest) {
+  const startedAt = Date.now();
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      logRequest(req, startedAt, auth.response);
+      return auth.response;
     }
 
     const customFields = await prisma.customField.findMany({
-      where: { userId: user.userId },
+      where: { userId: auth.user.userId },
       orderBy: { createdAt: "asc" },
     });
 
-    return NextResponse.json({ customFields }, { status: 200 });
+    const response = NextResponse.json({ customFields }, { status: 200 });
+    logRequest(req, startedAt, response, { userId: auth.user.userId });
+    return response;
   } catch (error) {
-    console.error("Error fetching custom fields:", error);
-    return NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    logRequest(req, startedAt, response);
+    return response;
   }
 }
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      logRequest(req, startedAt, auth.response);
+      return auth.response;
     }
 
     const body = await req.json();
-    const { fieldName, fieldType } = body;
+    const input = parseCustomFieldInput(body);
 
-    if (!fieldName) {
-      return NextResponse.json(
+    if (!input) {
+      const response = NextResponse.json(
         { error: "Field name is required" },
         { status: 400 }
       );
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
     // Check if field already exists
     const existing = await prisma.customField.findUnique({
       where: {
         userId_fieldName: {
-          userId: user.userId,
-          fieldName,
+          userId: auth.user.userId,
+          fieldName: input.fieldName,
         },
       },
     });
 
     if (existing) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Field already exists" },
         { status: 409 }
       );
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
     const customField = await prisma.customField.create({
       data: {
-        userId: user.userId,
-        fieldName,
-        fieldType: fieldType || "text",
+        userId: auth.user.userId,
+        fieldName: input.fieldName,
+        fieldType: input.fieldType,
       },
     });
 
-    return NextResponse.json({ customField }, { status: 201 });
+    const response = NextResponse.json({ customField }, { status: 201 });
+    logRequest(req, startedAt, response, { userId: auth.user.userId });
+    return response;
   } catch (error) {
-    console.error("Error creating custom field:", error);
-    return NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    logRequest(req, startedAt, response);
+    return response;
   }
 }
 
 export async function DELETE(req: NextRequest) {
+  const startedAt = Date.now();
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      logRequest(req, startedAt, auth.response);
+      return auth.response;
     }
 
     const body = await req.json();
-    const { fieldId } = body;
+    const input = parseDeleteCustomFieldInput(body);
 
-    if (!fieldId) {
-      return NextResponse.json(
+    if (!input) {
+      const response = NextResponse.json(
         { error: "Field ID is required" },
         { status: 400 }
       );
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
     // Verify field belongs to user
     const customField = await prisma.customField.findUnique({
-      where: { id: fieldId },
+      where: { id: input.fieldId },
     });
 
-    if (!customField || customField.userId !== user.userId) {
-      return NextResponse.json(
+    if (!customField || customField.userId !== auth.user.userId) {
+      const response = NextResponse.json(
         { error: "Field not found or unauthorized" },
         { status: 404 }
       );
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
     await prisma.customField.delete({
-      where: { id: fieldId },
+      where: { id: input.fieldId },
     });
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    const response = NextResponse.json({ success: true }, { status: 200 });
+    logRequest(req, startedAt, response, { userId: auth.user.userId });
+    return response;
   } catch (error) {
-    console.error("Error deleting custom field:", error);
-    return NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    logRequest(req, startedAt, response);
+    return response;
   }
 }

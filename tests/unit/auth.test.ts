@@ -1,0 +1,227 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// Mock jsonwebtoken before importing anything that uses it
+vi.mock('jsonwebtoken', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('jsonwebtoken')>()
+  return {
+    ...actual,
+    sign: vi.fn(),
+    verify: vi.fn(),
+  }
+})
+
+// Mock next/headers
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(async () => ({
+    get: vi.fn(),
+    set: vi.fn(),
+    delete: vi.fn(),
+  })),
+}))
+
+describe('auth', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env.JWT_SECRET = 'test-jwt-secret'
+  })
+
+  describe('generateToken', () => {
+    it('should generate a valid JWT token', async () => {
+      const payload = {
+        userId: 'user-123',
+        email: 'test@example.com',
+      }
+
+      const { generateToken } = await import('@/server/auth/jwt')
+      const token = generateToken(payload)
+
+      // Token should be a string with JWT format (three parts separated by dots)
+      expect(typeof token).toBe('string')
+      expect(token.split('.').length).toBe(3)
+    })
+
+  })
+
+  describe('verifyToken', () => {
+    it('should verify a valid token', async () => {
+      const payload = {
+        userId: 'user-123',
+        email: 'test@example.com',
+      }
+
+      const { generateToken, verifyToken } = await import('@/server/auth/jwt')
+      const token = generateToken(payload)
+      const result = verifyToken(token)
+
+      // Should return the payload
+      expect(result).not.toBeNull()
+      expect(result?.userId).toBe('user-123')
+      expect(result?.email).toBe('test@example.com')
+    })
+
+    it('should return null for invalid token', async () => {
+      const jwt = await import('jsonwebtoken')
+      const token = 'invalid-token'
+
+      vi.mocked(jwt.verify).mockImplementationOnce(() => {
+        throw new Error('JsonWebTokenError: invalid token')
+      })
+
+      const { verifyToken } = await import('@/server/auth/jwt')
+      const result = verifyToken(token)
+
+      expect(result).toBeNull()
+    })
+
+    it('should return null for expired token', async () => {
+      const jwt = await import('jsonwebtoken')
+      const token = 'expired-token'
+
+      vi.mocked(jwt.verify).mockImplementationOnce(() => {
+        throw new Error('TokenExpiredError: jwt expired')
+      })
+
+      const { verifyToken } = await import('@/server/auth/jwt')
+      const result = verifyToken(token)
+
+      expect(result).toBeNull()
+    })
+  })
+
+  describe('getCurrentUser', () => {
+    it('should return null if no token exists', async () => {
+      const { cookies } = await import('next/headers')
+      const mockCookies = {
+        get: vi.fn(() => undefined),
+        set: vi.fn(),
+        delete: vi.fn(),
+      }
+
+      vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
+
+      const { getCurrentUser } = await import('@/server/auth/jwt')
+      const user = await getCurrentUser()
+
+      expect(user).toBeNull()
+    })
+
+    it('should return null if token is invalid', async () => {
+      const jwt = await import('jsonwebtoken')
+      const { cookies } = await import('next/headers')
+
+      const mockCookies = {
+        get: vi.fn(() => ({ value: 'invalid-token' })),
+        set: vi.fn(),
+        delete: vi.fn(),
+      }
+
+      vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
+      vi.mocked(jwt.verify).mockImplementationOnce(() => {
+        throw new Error('Invalid token')
+      })
+
+      const { getCurrentUser } = await import('@/server/auth/jwt')
+      const user = await getCurrentUser()
+
+      expect(user).toBeNull()
+    })
+  })
+
+  describe('getTokenFromCookies', () => {
+    it('should get token from cookies', async () => {
+      const { cookies } = await import('next/headers')
+      const mockCookies = {
+        get: vi.fn(() => ({ value: 'token-from-cookies' })),
+        set: vi.fn(),
+        delete: vi.fn(),
+      }
+
+      vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
+
+      const { getTokenFromCookies } = await import('@/server/auth/jwt')
+      const token = await getTokenFromCookies()
+
+      expect(token).toBe('token-from-cookies')
+      expect(mockCookies.get).toHaveBeenCalledWith('auth')
+    })
+
+    it('should return null if no auth cookie exists', async () => {
+      const { cookies } = await import('next/headers')
+      const mockCookies = {
+        get: vi.fn(() => undefined),
+        set: vi.fn(),
+        delete: vi.fn(),
+      }
+
+      vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
+
+      const { getTokenFromCookies } = await import('@/server/auth/jwt')
+      const token = await getTokenFromCookies()
+
+      expect(token).toBeNull()
+    })
+  })
+
+  describe('setAuthCookie', () => {
+    it('should set auth cookie with correct options', async () => {
+      const { cookies } = await import('next/headers')
+      const mockCookies = {
+        get: vi.fn(),
+        set: vi.fn(),
+        delete: vi.fn(),
+      }
+
+      vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
+
+      const { setAuthCookie } = await import('@/server/auth/jwt')
+      await setAuthCookie('new-token')
+
+      expect(mockCookies.set).toHaveBeenCalledWith(
+        'auth',
+        'new-token',
+        expect.objectContaining({
+          httpOnly: true,
+          sameSite: 'lax',
+          maxAge: 30 * 24 * 60 * 60,
+        })
+      )
+    })
+  })
+
+  describe('clearAuthCookie', () => {
+    it('should delete auth cookie', async () => {
+      const { cookies } = await import('next/headers')
+      const mockCookies = {
+        get: vi.fn(),
+        set: vi.fn(),
+        delete: vi.fn(),
+      }
+
+      vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
+
+      const { clearAuthCookie } = await import('@/server/auth/jwt')
+      await clearAuthCookie()
+
+      expect(mockCookies.delete).toHaveBeenCalledWith('auth')
+    })
+  })
+
+  describe('JWT secret requirements', () => {
+    it('should throw when JWT_SECRET is missing outside test mode', async () => {
+      const previousNodeEnv = process.env.NODE_ENV
+      const previousSecret = process.env.JWT_SECRET
+
+      process.env.NODE_ENV = 'production'
+      delete process.env.JWT_SECRET
+
+      const { generateToken } = await import('@/server/auth/jwt')
+
+      expect(() =>
+        generateToken({ userId: 'user-1', email: 'user@example.com' })
+      ).toThrow('JWT_SECRET environment variable is required')
+
+      process.env.NODE_ENV = previousNodeEnv
+      process.env.JWT_SECRET = previousSecret
+    })
+  })
+})

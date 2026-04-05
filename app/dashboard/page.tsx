@@ -1,15 +1,13 @@
 "use client";
 
-import { useAuth } from "@/app/lib/auth-context";
+import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { apiClient } from "@/app/lib/api-client";
-import Link from "next/link";
-import { DashboardContent } from "@/app/components/dashboard-content";
+import { useEffect } from "react";
+import { DashboardContent } from "@/app/components/items/dashboard-content";
 import { LogOut, BookOpen } from "lucide-react";
 
 export default function Dashboard() {
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading, mounted, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -23,12 +21,12 @@ export default function Dashboard() {
     router.push("/auth/login");
   };
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="vault-app-shell flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto"></div>
+          <p className="mt-4 text-slate-400">Carregando...</p>
         </div>
       </div>
     );
@@ -39,36 +37,39 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="p-2 bg-blue-600 rounded-lg shrink-0">
-              <BookOpen className="w-5 sm:w-6 h-5 sm:h-6 text-white" />
+    <div className="vault-app-shell">
+      <div className="vault-orb vault-orb-1" />
+      <div className="vault-orb vault-orb-2" />
+      <div className="vault-orb vault-orb-3" />
+
+      <header className="sticky top-0 z-30 border-b border-indigo-400/10 bg-[#0d0d1f]/82 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-700 to-violet-600 shadow-[0_0_24px_rgba(99,102,241,0.32)]">
+              <BookOpen className="h-6 w-6 text-white" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+              <h1 className="font-display truncate text-lg font-semibold tracking-[-0.03em] text-slate-50 sm:text-2xl">
                 Minhas Coleções
               </h1>
-              <p className="text-gray-600 text-xs sm:text-sm truncate">Bem-vindo, <span className="font-semibold">{user.name.split(' ')[0]}</span>!</p>
+              <p className="truncate text-sm text-slate-400">
+                Bem-vindo, <span className="font-semibold text-slate-200">{user.name.split(" ")[0]}</span>
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleLogout}
-              className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors w-full sm:w-auto"
-            >
-              <LogOut className="w-4 h-4 shrink-0" />
-              <span className="hidden sm:inline">Sair</span>
-            </button>
-          </div>
+
+          <button
+            onClick={handleLogout}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-indigo-400/20 bg-indigo-500/8 px-3 text-sm font-medium text-indigo-200 shadow-sm transition hover:bg-indigo-500/12"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">Sair</span>
+          </button>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <DashboardContent userId={user.id} />
+      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-28 pt-5 sm:px-6 sm:pt-8 lg:px-8">
+        <DashboardContent userName={user.name} />
       </main>
     </div>
   );

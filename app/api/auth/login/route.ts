@@ -1,39 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { verifyPassword } from "@/app/lib/password";
-import { generateToken, setAuthCookie } from "@/app/lib/auth";
-import { addCorsHeaders, handleCorsPreFlight } from "@/app/lib/cors";
+import { prisma } from "@/server/db/prisma";
+import { verifyPassword } from "@/server/security/password";
+import { generateToken, setAuthCookie } from "@/server/auth/jwt";
+import { addCorsHeaders, handleCorsPreFlight } from "@/server/http/cors";
+import { loginSchema } from "@/lib/schemas/auth";
+import { logRequest, logRequestError } from "@/server/logging/request";
 
 export async function OPTIONS() {
   return handleCorsPreFlight();
 }
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
   try {
     const body = await req.json();
-    const { email, password } = body;
+    const parsed = loginSchema.safeParse(body);
 
-    if (!email || !password) {
-      return addCorsHeaders(NextResponse.json(
+    if (!parsed.success) {
+      const response = addCorsHeaders(NextResponse.json(
         { error: "Email and password are required" },
         { status: 400 }
-      ));
+      ), req.headers.get("origin"));
+      logRequest(req, startedAt, response);
+      return response;
     }
+
+    const { email, password } = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return addCorsHeaders(NextResponse.json(
+      const response = addCorsHeaders(NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
-      ));
+      ), req.headers.get("origin"));
+      logRequest(req, startedAt, response);
+      return response;
     }
 
     const isValid = await verifyPassword(password, user.password);
     if (!isValid) {
-      return addCorsHeaders(NextResponse.json(
+      const response = addCorsHeaders(NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
-      ));
+      ), req.headers.get("origin"));
+      logRequest(req, startedAt, response, { userId: user.id });
+      return response;
     }
 
     const token = generateToken({
@@ -53,12 +64,16 @@ export async function POST(req: NextRequest) {
     );
 
     await setAuthCookie(token);
-    return addCorsHeaders(response);
+    const finalResponse = addCorsHeaders(response, req.headers.get("origin"));
+    logRequest(req, startedAt, finalResponse, { userId: user.id });
+    return finalResponse;
   } catch (error) {
-    console.error("Login error:", error);
-    return addCorsHeaders(NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = addCorsHeaders(NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
-    ));
+    ), req.headers.get("origin"));
+    logRequest(req, startedAt, response);
+    return response;
   }
 }

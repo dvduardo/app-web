@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -17,22 +17,44 @@ model User {
   
   items             Item[]
   customFields      CustomField[]
+  categories        Category[]
 }
 
 model Item {
   id                String   @id @default(cuid())
   userId            String
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId        String?
+  category          Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   
   title             String
   description       String?
+  status            String   @default("owned")
+  isFavorite        Boolean  @default(false)
   customData        String   @default("{}")
+  deletedAt         DateTime?
   
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   
   photos            Photo[]
   
+  @@index([userId])
+  @@index([categoryId])
+  @@index([userId, deletedAt])
+}
+
+model Category {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name              String
+  createdAt         DateTime @default(now())
+
+  items             Item[]
+
+  @@unique([userId, name])
   @@index([userId])
 }
 

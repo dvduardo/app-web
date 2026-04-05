@@ -1,37 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/app/lib/auth";
-import { prisma } from "@/app/lib/prisma";
+import { requireUser } from "@/server/auth/require-user";
+import { prisma } from "@/server/db/prisma";
+import { logRequest, logRequestError } from "@/server/logging/request";
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; photoId: string }> }
 ) {
+  const startedAt = Date.now();
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireUser();
+    if (auth.response) {
+      logRequest(req, startedAt, auth.response);
+      return auth.response;
     }
 
     const { id, photoId } = await params;
 
-    const item = await prisma.item.findUnique({ where: { id } });
-    if (!item || item.userId !== user.userId) {
-      return NextResponse.json({ error: "Item not found" }, { status: 404 });
+    const item = await prisma.item.findFirst({
+      where: {
+        id,
+        userId: auth.user.userId,
+        deletedAt: null,
+      },
+    });
+    if (!item) {
+      const response = NextResponse.json({ error: "Item not found" }, { status: 404 });
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
     const photo = await prisma.photo.findUnique({ where: { id: photoId } });
     if (!photo || photo.itemId !== id) {
-      return NextResponse.json({ error: "Photo not found" }, { status: 404 });
+      const response = NextResponse.json({ error: "Photo not found" }, { status: 404 });
+      logRequest(req, startedAt, response, { userId: auth.user.userId });
+      return response;
     }
 
     await prisma.photo.delete({ where: { id: photoId } });
 
-    return NextResponse.json({ message: "Photo deleted" }, { status: 200 });
+    const response = NextResponse.json({ message: "Photo deleted" }, { status: 200 });
+    logRequest(req, startedAt, response, { userId: auth.user.userId });
+    return response;
   } catch (error) {
-    console.error("Error deleting photo:", error);
-    return NextResponse.json(
+    logRequestError(req, startedAt, error);
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    logRequest(req, startedAt, response);
+    return response;
   }
 }

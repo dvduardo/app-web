@@ -8,24 +8,9 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: e2e_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     env:
       JWT_SECRET: e2e-test-jwt-secret-for-ci
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e_test
+      DATABASE_URL: file:./dev.db
 
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +27,7 @@ jobs:
         run: npx prisma generate
 
       - name: Run database migrations
-        run: npx prisma migrate deploy
+        run: npx prisma db push
 
       - name: Build application
         run: npm run build

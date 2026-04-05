@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
   },
   
   async headers() {
-    return [
+    const baseHeaders = [
       {
         source: "/:path((?!api).*)",
         headers: [
@@ -31,6 +31,14 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+    ];
+
+    if (process.env.NODE_ENV !== "production") {
+      return baseHeaders;
+    }
+
+    return [
+      ...baseHeaders,
       {
         source: "/fonts/:path*",
         headers: [
@@ -64,4 +72,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
