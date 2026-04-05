@@ -1,143 +1,200 @@
 # app-web
 
-Aplicação web PWA para gestão de coleções pessoais com autenticação segura, suporte a fotos e campos customizáveis. Construída com Next.js 16 + React 19.
+Aplicação web para gestão de coleções pessoais, com autenticação, dashboard visual, categorias, campos customizáveis e suporte a múltiplas fotos por item. O projeto usa Next.js App Router no frontend e API routes com Prisma no backend, tudo em TypeScript strict.
 
-## ✨ Features
+## Visão geral
 
-- **Autenticação segura** — JWT + bcryptjs com validação de senha robusta
-- **Gestão de itens** — CRUD completo com suporte a múltiplas fotos e ordenação
-- **Campos customizáveis** — Crie campos personalizados por item
-- **Interface responsiva** — Tailwind CSS 4 com design moderno
-- **Testes automatizados** — Cobertura com Vitest (unit/integration) + Playwright (E2E)
-- **Type-safe** — TypeScript strict mode em toda a aplicação
+Hoje o projeto está organizado em três frentes principais:
 
-## 🛠️ Stack
+- Landing page pública em `/` com proposta visual do produto
+- Fluxo de autenticação em `/auth/login` e `/auth/register`
+- Área logada em `/dashboard` para criar, editar, filtrar e favoritar itens da coleção
 
-| Componente | Versão |
-|-----------|--------|
-| **Framework** | Next.js 16.2.1 + React 19.2.4 |
-| **Linguagem** | TypeScript 5 |
-| **Banco de Dados** | Prisma ORM 5.18 + SQLite |
-| **Estilo** | Tailwind CSS 4 + Lucide React |
-| **State** | TanStack React Query 5.96 |
-| **HTTP** | Axios 1.14 |
-| **Autenticação** | JWT 9.0 + bcryptjs 3.0 |
-| **Testing** | Vitest 1.0 + Playwright 1.59 |
+## Principais recursos
 
-## 🚀 Quick Start
+- Autenticação com JWT em cookie HTTP-only e senha com `bcryptjs`
+- Cadastro e login com validação via `zod` + `react-hook-form`
+- Dashboard com busca, paginação, filtros por categoria e status
+- Alternância entre visualização em grade e lista
+- Destaque de favoritos e status como `owned`, `wishlist` e `loaned`
+- CRUD de itens com descrição, categoria e campos customizáveis
+- Upload de múltiplas fotos por item com ordenação e galeria
+- Categorias por usuário, com criação direta pelo formulário
+- Notificações com `react-hot-toast`
+- Cobertura de testes unitários com Vitest e fluxos E2E com Playwright
+
+## Stack
+
+| Camada | Tecnologias |
+| --- | --- |
+| Framework | Next.js 16.2.1 + React 19.2.4 |
+| Linguagem | TypeScript 5 |
+| UI | Tailwind CSS 4 + Lucide React |
+| Forms | React Hook Form + Zod |
+| Dados no cliente | TanStack React Query 5 + Axios |
+| Banco | Prisma ORM + SQLite |
+| Auth | JWT + bcryptjs |
+| Testes | Vitest + Testing Library + Playwright |
+| Observabilidade | Pino |
+
+## Estrutura
+
+```text
+app/
+  api/                  rotas de autenticação, categorias, itens e fotos
+  auth/                 páginas públicas de login e registro
+  dashboard/            dashboard, detalhe e criação/edição de itens
+  components/           componentes da landing, auth, dashboard e UI
+
+contexts/               contexto de autenticação no cliente
+hooks/                  hooks de dados para itens, categorias e campos customizáveis
+lib/                    schemas, client HTTP e utilitários compartilhados
+server/                 auth, Prisma, validação, CORS, logs e scripts
+prisma/                 schema e bancos SQLite locais
+public/                 previews HTML de exploração visual
+tests/                  suíte unitária e E2E
+```
+
+## Quick start
 
 ### Requisitos
-- Node.js 18+ e npm
 
-### Passos
+- Node.js 20+
+- npm
+
+### Instalação
 
 ```bash
-# 1. Clone o repositório
-git clone https://github.com/seu-repo/app-web.git
-cd app-web
-
-# 2. Instale dependências
 npm install
-
-# 3. Configure banco de dados
-npx prisma migrate dev
-
-# 4. Inicie dev server
-npm run dev
-
-# 5. Abra no navegador
-# http://localhost:3000 → redireciona para /dashboard após login
 ```
 
-## 📋 Comandos
-
-```bash
-npm run dev              # Iniciar dev server
-npm run build            # Build para produção
-npm start                # Rodar app.js (custom server)
-npm run lint             # Verificar código com ESLint
-npm run test             # Testes unitários (Vitest)
-npm run test:watch       # Vitest em watch mode
-npm run test:coverage    # Relatório de cobertura
-npm run test:e2e         # Testes E2E (Playwright)
-npm run test:e2e:ui      # UI do Playwright
-```
-
-## 📁 Estrutura
-
-```
-app/
-├── api/
-│   ├── auth/            → Login, register, logout, me
-│   ├── items/           → CRUD de itens + fotos
-│   └── custom-fields/   → Gerenciar campos personalizados
-├── auth/                → Páginas de login e registro
-├── dashboard/           → Dashboard principal + detalhe de itens
-└── components/          → Componentes reutilizáveis e composição da UI
-
-frontend/
-├── auth/                → Contexto e sessão do cliente
-├── hooks/               → Hooks de dados e estado da interface
-├── lib/                 → Utilitários voltados ao cliente
-└── providers/           → Providers do frontend
-
-backend/
-├── auth/                → Helpers de autenticação/autorização
-├── db/                  → Prisma e acesso a banco
-├── http/                → Helpers HTTP e guards de rota
-├── security/            → Hash e verificação de senha
-├── scripts/             → Scripts de execução
-└── validation/          → Validação e parsing da API
-
-tests/
-├── unit/                → Testes unitários e de integração leve
-└── e2e/                 → Testes end-to-end com Playwright
-```
-
-## 🔧 Variáveis de Ambiente
+### Variáveis de ambiente
 
 Crie um arquivo `.env.local` na raiz do projeto:
 
 ```env
-# Banco de dados (SQLite)
 DATABASE_URL="file:./dev.db"
-
-# Autenticação
-JWT_SECRET="sua-chave-secreta-super-segura"
+JWT_SECRET="troque-esta-chave-em-producao"
 ALLOW_INSECURE_COOKIES="false"
-
-# CORS opcional para frontend separado
 CORS_ALLOWED_ORIGINS="http://localhost:3001"
-
-# Upload de fotos
-ITEM_PHOTO_MAX_BYTES="5242880"
+LOG_LEVEL="debug"
 ```
 
-## 🤝 Contribuindo
+Observações:
 
-Este projeto segue padrões específicos de desenvolvimento.
+- `DATABASE_URL="file:./dev.db"` usa o SQLite local esperado pelo Prisma
+- em ambiente local, `ALLOW_INSECURE_COOKIES="true"` pode ser útil se você estiver testando sem HTTPS
+- `CORS_ALLOWED_ORIGINS` só é necessário se houver outro frontend consumindo a API
 
-### Requisitos
+### Banco e seed
 
-- **TypeScript strict mode** — Sem `any`, sem `// @ts-ignore`
-- **Padrões Next.js 16** — App router, server/client components, API routes
-- **Reutilização** — Prefira `/frontend` para lógica de cliente e `/backend` para lógica de servidor
-- **Testes obrigatórios** — Feature nova = testes unitários + E2E
-- **ESLint deve passar** — `npm run lint`
+```bash
+npx prisma generate
+npx prisma db push
+npm run seed
+```
 
-### Workflow
+O seed cria um usuário de teste:
 
-1. Crie uma branch: `git checkout -b feature/sua-feature`
-2. Implemente + adicione testes
-3. Rode: `npm run test && npm run test:e2e && npm run lint`
-4. Faça commit e envie PR
+- Email: `teste@example.com`
+- Senha: `Teste123!`
 
-Leia [.github/copilot-instructions.md](.github/copilot-instructions.md) para princípios detalhados.
+### Desenvolvimento
 
-## 📝 Licença
+```bash
+npm run dev
+```
 
-MIT
+Abra:
 
----
+- `http://localhost:3000/` para a landing page
+- `http://localhost:3000/auth/login` para login
+- `http://localhost:3000/dashboard` para a área autenticada
 
-**Precisa de ajuda?** Verifique os testes em `/tests/unit` e `/tests/e2e` para exemplos de uso da API, helpers e componentes.
+## Scripts
+
+```bash
+npm run dev              # ambiente de desenvolvimento
+npm run build            # build de produção
+npm start                # inicia o servidor via server/scripts/start.mjs
+npm run seed             # cria usuário de teste
+npm run lint             # lint com ESLint
+npm run test             # testes unitários/integration com Vitest
+npm run test:watch       # Vitest em watch mode
+npm run test:coverage    # cobertura de testes
+npm run test:e2e         # testes end-to-end com Playwright
+npm run test:e2e:ui      # runner visual do Playwright
+npm run test:e2e:report  # abre o report do Playwright
+```
+
+## API principal
+
+Rotas implementadas hoje:
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `GET /api/categories`
+- `POST /api/categories`
+- `GET /api/custom-fields`
+- `POST /api/custom-fields`
+- `DELETE /api/custom-fields`
+- `GET /api/items`
+- `POST /api/items`
+- `GET /api/items/[id]`
+- `PUT /api/items/[id]`
+- `DELETE /api/items/[id]`
+- `POST /api/items/[id]/photos`
+- `DELETE /api/items/[id]/photos/[photoId]`
+
+## Modelagem
+
+O banco hoje gira em torno de cinco entidades:
+
+- `User`
+- `Item`
+- `Category`
+- `CustomField`
+- `Photo`
+
+Cada usuário possui suas próprias categorias, campos customizáveis e itens. Cada item pode ter status, favorito, dados extras serializados e várias fotos ordenadas.
+
+## Previews visuais
+
+Arquivos de exploração visual disponíveis em `public/`:
+
+- [`public/home-web-proposal-preview.html`](/Users/david/Documents/projetos/app-web/public/home-web-proposal-preview.html)
+- [`public/dashboard-web-proposal-preview.html`](/Users/david/Documents/projetos/app-web/public/dashboard-web-proposal-preview.html)
+- [`public/login-apparition-preview.html`](/Users/david/Documents/projetos/app-web/public/login-apparition-preview.html)
+
+Você pode abrir diretamente no navegador local, por exemplo:
+
+```bash
+open public/home-web-proposal-preview.html
+```
+
+## Testes
+
+Cobertura atual inclui:
+
+- testes de autenticação, schemas, utilitários e regras de negócio
+- testes de CORS, upload de foto e helpers de API
+- testes E2E para autenticação, dashboard e itens
+
+Arquivos de referência:
+
+- [`tests/unit/auth.test.ts`](/Users/david/Documents/projetos/app-web/tests/unit/auth.test.ts)
+- [`tests/unit/item-schema.test.ts`](/Users/david/Documents/projetos/app-web/tests/unit/item-schema.test.ts)
+- [`tests/e2e/auth.spec.ts`](/Users/david/Documents/projetos/app-web/tests/e2e/auth.spec.ts)
+- [`tests/e2e/dashboard.spec.ts`](/Users/david/Documents/projetos/app-web/tests/e2e/dashboard.spec.ts)
+- [`tests/e2e/items.spec.ts`](/Users/david/Documents/projetos/app-web/tests/e2e/items.spec.ts)
+
+## Convenções do projeto
+
+- TypeScript em modo strict
+- App Router e separação clara entre código de `app/`, `hooks/`, `lib/` e `server/`
+- Preferência por reutilizar padrões já existentes antes de criar novos arquivos
+- Mudanças novas devem vir acompanhadas de testes quando fizer sentido
+
+As diretrizes detalhadas para agentes e automações estão em [`.github/copilot-instructions.md`](/Users/david/Documents/projetos/app-web/.github/copilot-instructions.md).
