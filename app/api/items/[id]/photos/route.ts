@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireUser } from "@/backend/auth/require-user";
-import { prisma } from "@/backend/db/prisma";
+import { requireUser } from "@/server/auth/require-user";
+import { prisma } from "@/server/db/prisma";
 
 const MAX_PHOTO_BYTES = Number(process.env.ITEM_PHOTO_MAX_BYTES ?? 5 * 1024 * 1024);
 const ALLOWED_IMAGE_MIME_TYPES = new Set([

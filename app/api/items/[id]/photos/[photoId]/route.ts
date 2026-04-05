@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireUser } from "@/backend/auth/require-user";
-import { prisma } from "@/backend/db/prisma";
+import { requireUser } from "@/server/auth/require-user";
+import { prisma } from "@/server/db/prisma";
 
 export async function DELETE(
   req: NextRequest,

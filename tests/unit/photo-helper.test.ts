@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { getPhotoSrc, Photo } from '@/frontend/lib/photo-helper'
+import { getPhotoSrc, Photo } from '@/lib/photo-helper'
 
 describe('photo-helper', () => {
   beforeEach(() => {

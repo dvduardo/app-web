@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/backend/db/prisma";
-import { requireUser } from "@/backend/auth/require-user";
-import { parseItemInput } from "@/backend/validation/items";
+import { prisma } from "@/server/db/prisma";
+import { requireUser } from "@/server/auth/require-user";
+import { parseItemInput } from "@/server/validation/items";
 
 export async function GET(req: NextRequest) {
   try {

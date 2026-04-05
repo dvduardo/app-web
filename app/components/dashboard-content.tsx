@@ -3,11 +3,11 @@
 import { useDeferredValue, useState } from "react";
 import toast from "react-hot-toast";
 import { Plus, Download, Upload, Search } from "lucide-react";
-import { apiClient } from "@/frontend/lib/api-client";
+import { apiClient } from "@/lib/api-client";
 import Link from "next/link";
 import { ItemCard } from "./item-card";
-import { getErrorMessage } from "@/frontend/lib/get-error-message";
-import { useItems } from "@/frontend/hooks/use-items";
+import { getErrorMessage } from "@/lib/get-error-message";
+import { useItems } from "@/hooks/use-items";
 
 export function DashboardContent() {
   const [error, setError] = useState("");

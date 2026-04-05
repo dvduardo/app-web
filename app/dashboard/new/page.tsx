@@ -1,13 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { useAuth } from '@/frontend/auth/auth-context';
+import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { apiClient } from '@/frontend/lib/api-client';
-import { getErrorMessage } from '@/frontend/lib/get-error-message';
-import { useCustomFields } from '@/frontend/hooks/use-custom-fields';
+import { apiClient } from '@/lib/api-client';
+import { getErrorMessage } from '@/lib/get-error-message';
+import { useCustomFields } from '@/hooks/use-custom-fields';
 
 export default function NewItemPage() {
   const { user, isLoading, mounted } = useAuth();

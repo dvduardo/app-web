@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { getPhotoSrc } from "@/frontend/lib/photo-helper";
+import { getPhotoSrc } from "@/lib/photo-helper";
 
 interface Photo {
   id?: string;

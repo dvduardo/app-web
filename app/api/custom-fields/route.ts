@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/backend/db/prisma";
-import { requireUser } from "@/backend/auth/require-user";
-import { parseCustomFieldInput } from "@/backend/validation/items";
+import { prisma } from "@/server/db/prisma";
+import { requireUser } from "@/server/auth/require-user";
+import { parseCustomFieldInput } from "@/server/validation/items";
 
 export async function GET() {
   try {

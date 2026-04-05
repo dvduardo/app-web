@@ -3,11 +3,11 @@
 
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { useAuth } from "@/frontend/auth/auth-context";
+import { useAuth } from "@/contexts/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, LogIn, BookOpen } from "lucide-react";
-import { getErrorMessage } from "@/frontend/lib/get-error-message";
+import { getErrorMessage } from "@/lib/get-error-message";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");

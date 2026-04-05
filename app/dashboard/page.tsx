@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/frontend/auth/auth-context";
+import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { DashboardContent } from "@/app/components/dashboard-content";

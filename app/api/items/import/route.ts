@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireUser } from "@/backend/auth/require-user";
-import { prisma } from "@/backend/db/prisma";
-import { parseItemInput } from "@/backend/validation/items";
+import { requireUser } from "@/server/auth/require-user";
+import { prisma } from "@/server/db/prisma";
+import { parseItemInput } from "@/server/validation/items";
 
 export async function POST(req: NextRequest) {
   try {

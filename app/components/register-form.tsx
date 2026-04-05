@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useAuth } from "@/frontend/auth/auth-context";
+import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, User, BookOpen, UserPlus } from "lucide-react";
-import { getErrorMessage } from "@/frontend/lib/get-error-message";
+import { getErrorMessage } from "@/lib/get-error-message";
 
 export function RegisterForm() {
   const [name, setName] = useState("");

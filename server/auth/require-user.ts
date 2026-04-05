@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, type JWTPayload } from "@/backend/auth/jwt";
+import { getCurrentUser, type JWTPayload } from "@/server/auth/jwt";
 
 export async function requireUser(): Promise<
   { user: JWTPayload; response: null } | { user: null; response: NextResponse }

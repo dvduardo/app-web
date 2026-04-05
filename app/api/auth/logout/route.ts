@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { clearAuthCookie } from "@/backend/auth/jwt";
-import { addCorsHeaders, handleCorsPreFlight } from "@/backend/http/cors";
+import { clearAuthCookie } from "@/server/auth/jwt";
+import { addCorsHeaders, handleCorsPreFlight } from "@/server/http/cors";
 
 export async function OPTIONS(req: Request) {
   return handleCorsPreFlight(req.headers.get("origin"));

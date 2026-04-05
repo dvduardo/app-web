@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { hashPassword, verifyPassword } from '@/backend/security/password'
+import { hashPassword, verifyPassword } from '@/server/security/password'
 
 describe('password', () => {
   describe('hashPassword', () => {

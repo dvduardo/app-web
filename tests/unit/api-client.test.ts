@@ -22,7 +22,7 @@ vi.mock('axios', () => {
 })
 
 // NOW import after mocking
-import { apiClient } from '@/frontend/lib/api-client'
+import { apiClient } from '@/lib/api-client'
 import axios from 'axios'
 
 describe('api-client', () => {

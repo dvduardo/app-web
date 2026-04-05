@@ -3,13 +3,13 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { apiClient } from "@/frontend/lib/api-client";
-import { useAuth } from "@/frontend/auth/auth-context";
-import { getPhotoSrc } from "@/frontend/lib/photo-helper";
+import { apiClient } from "@/lib/api-client";
+import { useAuth } from "@/contexts/auth-context";
+import { getPhotoSrc } from "@/lib/photo-helper";
 import { ImageGalleryModal } from "@/app/components/image-gallery-modal";
 import Link from "next/link";
-import { getErrorMessage } from "@/frontend/lib/get-error-message";
-import { useCustomFields } from "@/frontend/hooks/use-custom-fields";
+import { getErrorMessage } from "@/lib/get-error-message";
+import { useCustomFields } from "@/hooks/use-custom-fields";
 
 export default function ItemPage() {
   const params = useParams();

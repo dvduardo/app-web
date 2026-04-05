@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
-import { AuthProvider, useAuth } from '@/frontend/auth/auth-context'
-import * as apiClientModule from '@/frontend/lib/api-client'
+import { AuthProvider, useAuth } from '@/contexts/auth-context'
+import * as apiClientModule from '@/lib/api-client'
 
 // Mock api-client
-vi.mock('@/frontend/lib/api-client', () => ({
+vi.mock('@/lib/api-client', () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),

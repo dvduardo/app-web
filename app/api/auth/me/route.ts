@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/backend/auth/jwt";
-import { prisma } from "@/backend/db/prisma";
-import { addCorsHeaders, handleCorsPreFlight } from "@/backend/http/cors";
+import { getCurrentUser } from "@/server/auth/jwt";
+import { prisma } from "@/server/db/prisma";
+import { addCorsHeaders, handleCorsPreFlight } from "@/server/http/cors";
 
 export async function OPTIONS(req: Request) {
   return handleCorsPreFlight(req.headers.get("origin"));

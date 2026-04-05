@@ -6,7 +6,7 @@ export default defineConfig({
     // Environment
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./vitest.setup.ts'],
+    setupFiles: ['./tests/vitest.setup.ts'],
 
     // Coverage
     coverage: {
@@ -14,12 +14,12 @@ export default defineConfig({
       reporter: ['text', 'json', 'html', 'lcov'],
       reportsDirectory: './coverage',
       include: [
-        'frontend/auth/**/*.tsx',
-        'frontend/lib/**/*.ts',
-        'backend/auth/**/*.ts',
-        'backend/db/**/*.ts',
-        'backend/http/**/*.ts',
-        'backend/security/**/*.ts',
+        'contexts/**/*.tsx',
+        'lib/**/*.ts',
+        'server/auth/**/*.ts',
+        'server/db/**/*.ts',
+        'server/http/**/*.ts',
+        'server/security/**/*.ts',
       ],
       exclude: [
         'node_modules/',
@@ -39,7 +39,7 @@ export default defineConfig({
     },
 
     // Include patterns
-    include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx'],
+    include: ['./tests/unit/**/*.test.ts', './tests/unit/**/*.test.tsx'],
 
     // Test isolation
     isolate: true,
@@ -53,7 +53,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './'),
+      '@': path.resolve(__dirname, '../'),
     },
   },
 })

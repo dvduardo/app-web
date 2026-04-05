@@ -5,12 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node backend/scripts/start.mjs",
+    "start": "node server/scripts/start.mjs",
     "lint": "eslint",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage --run",
-    "test:e2e": "playwright test",
+    "test": "vitest --config tests/vitest.config.ts",
+    "test:watch": "vitest --config tests/vitest.config.ts --watch",
+    "test:coverage": "vitest --config tests/vitest.config.ts --coverage --run",
+    "test:e2e": "playwright test --config tests/playwright.config.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report"
   },

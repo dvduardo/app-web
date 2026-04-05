@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/frontend/lib/api-client";
+import { apiClient } from "@/lib/api-client";
 
 export interface CustomField {
   id: string;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/backend/auth/jwt";
-import { prisma } from "@/backend/db/prisma";
+import { getCurrentUser } from "@/server/auth/jwt";
+import { prisma } from "@/server/db/prisma";
 
 export async function GET() {
   try {

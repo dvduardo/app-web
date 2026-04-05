@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { getPhotoSrc } from "@/frontend/lib/photo-helper";
+import { getPhotoSrc } from "@/lib/photo-helper";
 import { ImageGalleryModal } from "./image-gallery-modal";
 
 interface Item {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { addCorsHeaders, handleCorsPreFlight } from '@/backend/http/cors'
+import { addCorsHeaders, handleCorsPreFlight } from '@/server/http/cors'
 import { NextResponse } from 'next/server'
 
 describe('cors', () => {

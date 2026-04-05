@@ -32,7 +32,7 @@ describe('auth', () => {
         email: 'test@example.com',
       }
 
-      const { generateToken } = await import('@/backend/auth/jwt')
+      const { generateToken } = await import('@/server/auth/jwt')
       const token = generateToken(payload)
 
       // Token should be a string with JWT format (three parts separated by dots)
@@ -46,7 +46,7 @@ describe('auth', () => {
         email: 'another@example.com',
       }
 
-      const { generateToken } = await import('@/backend/auth/jwt')
+      const { generateToken } = await import('@/server/auth/jwt')
       const token = generateToken(payload)
 
       // Should return a valid JWT token string
@@ -63,7 +63,7 @@ describe('auth', () => {
         email: 'test@example.com',
       }
 
-      const { generateToken, verifyToken } = await import('@/backend/auth/jwt')
+      const { generateToken, verifyToken } = await import('@/server/auth/jwt')
       const token = generateToken(payload)
       const result = verifyToken(token)
 
@@ -81,7 +81,7 @@ describe('auth', () => {
         throw new Error('JsonWebTokenError: invalid token')
       })
 
-      const { verifyToken } = await import('@/backend/auth/jwt')
+      const { verifyToken } = await import('@/server/auth/jwt')
       const result = verifyToken(token)
 
       expect(result).toBeNull()
@@ -95,7 +95,7 @@ describe('auth', () => {
         throw new Error('TokenExpiredError: jwt expired')
       })
 
-      const { verifyToken } = await import('@/backend/auth/jwt')
+      const { verifyToken } = await import('@/server/auth/jwt')
       const result = verifyToken(token)
 
       expect(result).toBeNull()
@@ -113,7 +113,7 @@ describe('auth', () => {
 
       vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
 
-      const { getCurrentUser } = await import('@/backend/auth/jwt')
+      const { getCurrentUser } = await import('@/server/auth/jwt')
       const user = await getCurrentUser()
 
       expect(user).toBeNull()
@@ -134,7 +134,7 @@ describe('auth', () => {
         throw new Error('Invalid token')
       })
 
-      const { getCurrentUser } = await import('@/backend/auth/jwt')
+      const { getCurrentUser } = await import('@/server/auth/jwt')
       const user = await getCurrentUser()
 
       expect(user).toBeNull()
@@ -152,7 +152,7 @@ describe('auth', () => {
 
       vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
 
-      const { getTokenFromCookies } = await import('@/backend/auth/jwt')
+      const { getTokenFromCookies } = await import('@/server/auth/jwt')
       const token = await getTokenFromCookies()
 
       expect(token).toBe('token-from-cookies')
@@ -169,7 +169,7 @@ describe('auth', () => {
 
       vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
 
-      const { getTokenFromCookies } = await import('@/backend/auth/jwt')
+      const { getTokenFromCookies } = await import('@/server/auth/jwt')
       const token = await getTokenFromCookies()
 
       expect(token).toBeNull()
@@ -187,7 +187,7 @@ describe('auth', () => {
 
       vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
 
-      const { setAuthCookie } = await import('@/backend/auth/jwt')
+      const { setAuthCookie } = await import('@/server/auth/jwt')
       await setAuthCookie('new-token')
 
       expect(mockCookies.set).toHaveBeenCalledWith(
@@ -213,7 +213,7 @@ describe('auth', () => {
 
       vi.mocked(cookies).mockResolvedValueOnce(mockCookies as any)
 
-      const { clearAuthCookie } = await import('@/backend/auth/jwt')
+      const { clearAuthCookie } = await import('@/server/auth/jwt')
       await clearAuthCookie()
 
       expect(mockCookies.delete).toHaveBeenCalledWith('auth')
@@ -228,7 +228,7 @@ describe('auth', () => {
       process.env.NODE_ENV = 'production'
       delete process.env.JWT_SECRET
 
-      const { generateToken } = await import('@/backend/auth/jwt')
+      const { generateToken } = await import('@/server/auth/jwt')
 
       expect(() =>
         generateToken({ userId: 'user-1', email: 'user@example.com' })

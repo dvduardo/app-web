@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/backend/db/prisma";
-import { hashPassword } from "@/backend/security/password";
-import { addCorsHeaders, handleCorsPreFlight } from "@/backend/http/cors";
+import { prisma } from "@/server/db/prisma";
+import { hashPassword } from "@/server/security/password";
+import { addCorsHeaders, handleCorsPreFlight } from "@/server/http/cors";
 
 export async function OPTIONS(req: NextRequest) {
   return handleCorsPreFlight(req.headers.get("origin"));
