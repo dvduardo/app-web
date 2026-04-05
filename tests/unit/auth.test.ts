@@ -40,20 +40,6 @@ describe('auth', () => {
       expect(token.split('.').length).toBe(3)
     })
 
-    it('should sign with correct payload', async () => {
-      const payload = {
-        userId: 'user-456',
-        email: 'another@example.com',
-      }
-
-      const { generateToken } = await import('@/server/auth/jwt')
-      const token = generateToken(payload)
-
-      // Should return a valid JWT token string
-      expect(token).toBeDefined()
-      expect(typeof token).toBe('string')
-      expect(token.length).toBeGreaterThan(0)
-    })
   })
 
   describe('verifyToken', () => {

@@ -28,6 +28,8 @@ export default defineConfig({
         '**/*.test.tsx',
         '**/*.spec.ts',
         '**/*.spec.tsx',
+        'server/db/prisma.ts',   // singleton de infraestrutura, sem lógica testável
+        'lib/api-client.ts',     // interceptors dependem de window/browser, cobertos nos e2e
       ],
       all: true,
       thresholds: {
