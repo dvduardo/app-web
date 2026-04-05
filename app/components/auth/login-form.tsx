@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,16 +8,29 @@ import toast from "react-hot-toast";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, LogIn, BookOpen } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  LogIn,
+  BookOpen,
+  Disc3,
+  Bot,
+  Gamepad2,
+  type LucideIcon,
+} from "lucide-react";
 import { getErrorMessage } from "@/lib/get-error-message";
 import { loginSchema } from "@/lib/schemas/auth";
 
 type LoginFormValues = z.input<typeof loginSchema>;
 
+const collectibleIcons: LucideIcon[] = [BookOpen, Disc3, Bot, Gamepad2];
+
 export function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [activeIconIndex, setActiveIconIndex] = useState(0);
+  const [isIconTransitioning, setIsIconTransitioning] = useState(false);
   const {
     register,
     handleSubmit,
@@ -38,6 +51,40 @@ export function LoginForm() {
     }
   }, [router, searchParams]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    let isLocked = false;
+
+    const intervalId = window.setInterval(() => {
+      if (isLocked) {
+        return;
+      }
+
+      isLocked = true;
+      setIsIconTransitioning(true);
+
+      window.setTimeout(() => {
+        setActiveIconIndex((currentIndex) => (currentIndex + 1) % collectibleIcons.length);
+      }, 90);
+
+      window.setTimeout(() => {
+        setIsIconTransitioning(false);
+        isLocked = false;
+      }, 220);
+    }, 3600);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
   const onSubmit = handleSubmit(async (values) => {
     try {
       await login(values.email, values.password);
@@ -53,8 +100,25 @@ export function LoginForm() {
     <div className="max-w-md w-full px-4 sm:px-0 space-y-6 sm:space-y-8">
       <div className="text-center">
         <div className="flex justify-center mb-4">
-          <div className="p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110">
-            <BookOpen className="w-8 h-8 text-white" />
+          <div className="relative h-20 w-20">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-3xl" />
+            {collectibleIcons.map((Icon, index) => {
+              const isActive = index === activeIconIndex;
+
+              return (
+                <div
+                  key={Icon.displayName ?? Icon.name ?? `collectible-icon-${index}`}
+                  aria-hidden="true"
+                  className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${
+                    isActive
+                      ? "opacity-100 scale-100 blur-0"
+                      : "pointer-events-none opacity-0 scale-95 blur-[2px]"
+                  } ${isIconTransitioning && isActive ? "opacity-0 scale-98 blur-[3px]" : ""}`}
+                >
+                  <Icon className="w-8 h-8 text-white" />
+                </div>
+              );
+            })}
           </div>
         </div>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
