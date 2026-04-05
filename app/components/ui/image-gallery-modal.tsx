@@ -77,6 +77,7 @@ export function ImageGalleryModal({
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (e.target === e.currentTarget) {
       onClose();
     }
@@ -100,7 +101,10 @@ export function ImageGalleryModal({
       aria-modal="true"
     >
       <button
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
         className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
         aria-label="Close gallery"
         title="Close (ESC)"
@@ -122,7 +126,10 @@ export function ImageGalleryModal({
       {photos.length > 1 && (
         <>
           <button
-            onClick={handlePrev}
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrev();
+            }}
             className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 p-2 rounded-full hover:bg-black/30"
             aria-label="Previous image"
             title="Previous (←)"
@@ -131,7 +138,10 @@ export function ImageGalleryModal({
           </button>
 
           <button
-            onClick={handleNext}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext();
+            }}
             className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 p-2 rounded-full hover:bg-black/30"
             aria-label="Next image"
             title="Next (→)"

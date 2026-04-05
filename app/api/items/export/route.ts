@@ -19,13 +19,24 @@ export async function GET(req: NextRequest) {
         deletedAt: null,
       },
       include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         photos: {
           orderBy: { order: "asc" },
         },
       },
     });
 
-    const jsonData = JSON.stringify(items, null, 2);
+    const exportItems = items.map((item) => ({
+      ...item,
+      categoryName: item.category?.name ?? null,
+    }));
+
+    const jsonData = JSON.stringify(exportItems, null, 2);
     const response = new NextResponse(jsonData, {
       status: 200,
       headers: {

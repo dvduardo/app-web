@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { apiClient } from "@/lib/api-client";
 import { getErrorMessage } from "@/lib/get-error-message";
 import { useCustomFields } from "@/hooks/use-custom-fields";
+import { useCategories } from "@/hooks/use-categories";
 import { ItemForm } from "@/app/components/items/item-form";
 import type { ItemFormInput } from "@/lib/schemas/item";
 import type { UploadablePhoto } from "@/lib/photo-upload";
@@ -16,6 +17,7 @@ export default function NewItemPage() {
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const { customFields, addCustomField, removeCustomField } = useCustomFields(Boolean(user));
+  const { categories, createCategory } = useCategories(Boolean(user));
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -75,7 +77,18 @@ export default function NewItemPage() {
           error={error}
           isSaving={isSaving}
           customFields={customFields}
+          categories={categories}
           onSubmit={handleSubmit}
+          onCreateCategory={async (categoryName) => {
+            try {
+              setError("");
+              return await createCategory({ name: categoryName });
+            } catch (submitError: unknown) {
+              const message = getErrorMessage(submitError, "Erro ao criar categoria");
+              setError(message);
+              throw new Error(message);
+            }
+          }}
           onAddCustomField={async (fieldName, fieldType) => {
             try {
               setError("");

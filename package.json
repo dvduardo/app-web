@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "node server/scripts/start.mjs",
+    "seed": "tsx server/scripts/seed.ts",
     "lint": "eslint",
     "test": "vitest --config tests/vitest.config.ts",
     "test:watch": "vitest --config tests/vitest.config.ts --watch",

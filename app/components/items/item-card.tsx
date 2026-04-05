@@ -6,9 +6,15 @@ import { Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { getPhotoSrc } from "@/lib/photo-helper";
 import { ImageGalleryModal } from "@/app/components/ui/image-gallery-modal";
+import { getCategoryTheme } from "@/lib/category-theme";
 
 interface Item {
   id: string;
+  categoryId: string | null;
+  category: {
+    id: string;
+    name: string;
+  } | null;
   title: string;
   description: string | null;
   customData: string;
@@ -23,23 +29,31 @@ interface Item {
 export function ItemCard({
   item,
   onDelete,
+  viewMode = "grid",
 }: {
   item: Item;
   onDelete: (id: string) => void;
+  viewMode?: "grid" | "list";
 }) {
   const router = useRouter();
   const firstPhoto = item.photos?.[0];
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const isListView = viewMode === "list";
+  const categoryName = item.category?.name ?? "Sem categoria";
+  const categoryTheme = getCategoryTheme(item.category?.name);
 
   return (
     <div
-      className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden cursor-pointer h-full flex flex-col"
-      onClick={() => router.push(`/dashboard/item/${item.id}`)}
+      className={`bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden h-full ${
+        isListView ? "flex flex-col sm:flex-row" : "flex flex-col"
+      }`}
     >
       {/* Photo */}
       <div
-        className="h-32 sm:h-40 md:h-48 bg-gray-200 relative overflow-hidden cursor-pointer"
+        className={`bg-gray-200 relative overflow-hidden cursor-pointer ${
+          isListView ? "h-40 sm:h-auto sm:w-56 md:w-64 shrink-0" : "h-32 sm:h-40 md:h-48"
+        }`}
         onClick={(e) => {
           e.stopPropagation();
           if (item.photos && item.photos.length > 0) {
@@ -84,50 +98,69 @@ export function ItemCard({
         )}
       </div>
 
-      {/* Content */}
-      <div className="p-3 sm:p-4 flex-1 flex flex-col">
-        <h3 className="font-bold text-base sm:text-lg text-gray-900 line-clamp-2">
-          {item.title}
-        </h3>
-        {item.description && (
-          <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-            {item.description}
-          </p>
-        )}
-
-        {item.photos && item.photos.length > 0 && (
-          <div className="text-xs text-gray-500 mt-2">
-            {item.photos.length} foto(s)
-          </div>
-        )}
-      </div>
-
-      {/* Actions */}
       <div
-        className="px-3 sm:px-4 py-2 sm:py-3 border-t border-gray-200 flex gap-2 bg-gray-50"
-        onClick={(e) => e.stopPropagation()}
+        className={`flex flex-1 ${
+          isListView ? "flex-col sm:flex-row" : "flex-col"
+        }`}
       >
-        <button
-          onClick={() => router.push(`/dashboard/item/${item.id}`)}
-          aria-label={`Editar item ${item.title}`}
-          title={`Editar item ${item.title}`}
-          className="flex-1 px-3 py-3 sm:py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-center flex items-center justify-center gap-2 transition-colors"
+        {/* Content */}
+        <div className="p-3 sm:p-4 flex-1 flex flex-col">
+          <div className="mb-3">
+            <span
+              className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${categoryTheme.badge}`}
+            >
+              {categoryName}
+            </span>
+          </div>
+          <h3 className="font-bold text-base sm:text-lg text-gray-900 line-clamp-2">
+            {item.title}
+          </h3>
+          {item.description && (
+            <p className={`text-sm text-gray-600 mt-2 ${isListView ? "line-clamp-3" : "line-clamp-2"}`}>
+              {item.description}
+            </p>
+          )}
+
+          {item.photos && item.photos.length > 0 && (
+            <div className="text-xs text-gray-500 mt-2">
+              {item.photos.length} foto(s)
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div
+          className={`px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 ${
+            isListView
+              ? "border-t border-gray-200 sm:border-t-0 sm:border-l sm:min-w-44"
+              : "border-t border-gray-200"
+          }`}
+          onClick={(e) => e.stopPropagation()}
         >
-          <Edit className="w-4 h-4" />{" "}
-          <span className="hidden sm:inline">Editar</span>
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(item.id);
-          }}
-          aria-label={`Deletar item ${item.title}`}
-          title={`Deletar item ${item.title}`}
-          className="px-3 py-3 sm:py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 focus:ring-2 focus:ring-offset-2 focus:ring-red-500 flex items-center justify-center gap-2 transition-colors"
-        >
-          <Trash2 className="w-4 h-4" />{" "}
-          <span className="hidden sm:inline">Deletar</span>
-        </button>
+          <div className={`flex gap-2 ${isListView ? "sm:flex-col" : ""}`}>
+            <button
+              onClick={() => router.push(`/dashboard/item/${item.id}`)}
+              aria-label={`Editar item ${item.title}`}
+              title={`Editar item ${item.title}`}
+              className="flex-1 px-3 py-3 sm:py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-center flex items-center justify-center gap-2 transition-colors"
+            >
+              <Edit className="w-4 h-4" />
+              <span>Editar</span>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(item.id);
+              }}
+              aria-label={`Deletar item ${item.title}`}
+              title={`Deletar item ${item.title}`}
+              className="px-3 py-3 sm:py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 focus:ring-2 focus:ring-offset-2 focus:ring-red-500 flex items-center justify-center gap-2 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Deletar</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <ImageGalleryModal

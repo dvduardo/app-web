@@ -27,6 +27,12 @@ export async function GET(
         deletedAt: null,
       },
       include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         photos: {
           orderBy: { order: "asc" },
         },
@@ -88,9 +94,29 @@ export async function PUT(
       return response;
     }
 
+    if (input.categoryId !== undefined) {
+      const category = await prisma.category.findFirst({
+        where: {
+          id: input.categoryId,
+          userId: auth.user.userId,
+        },
+        select: { id: true },
+      });
+
+      if (!category) {
+        const response = NextResponse.json(
+          { error: "Categoria inválida" },
+          { status: 400 }
+        );
+        logRequest(req, startedAt, response, { userId: auth.user.userId });
+        return response;
+      }
+    }
+
     const updated = await prisma.item.update({
       where: { id },
       data: {
+        categoryId: input.categoryId ?? item.categoryId,
         title: input.title ?? item.title,
         description:
           input.description !== undefined ? input.description : item.description,
@@ -100,6 +126,12 @@ export async function PUT(
             : item.customData,
       },
       include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         photos: {
           orderBy: { order: "asc" },
         },

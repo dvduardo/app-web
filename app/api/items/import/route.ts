@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/server/auth/require-user";
 import { prisma } from "@/server/db/prisma";
+import { getOrCreateCategoryByName } from "@/server/data/categories";
 import { parseImportedItem } from "@/server/validation/items";
 import { logRequest, logRequestError } from "@/server/logging/request";
 
@@ -31,9 +32,31 @@ export async function POST(req: NextRequest) {
       const item = parseImportedItem(rawItem);
       if (!item) continue;
 
+      let categoryId = item.categoryId;
+
+      if (categoryId) {
+        const category = await prisma.category.findFirst({
+          where: {
+            id: categoryId,
+            userId: auth.user.userId,
+          },
+          select: { id: true },
+        });
+        categoryId = category?.id;
+      }
+
+      if (!categoryId) {
+        const category = await getOrCreateCategoryByName(
+          auth.user.userId,
+          item.categoryName ?? "Importados"
+        );
+        categoryId = category.id;
+      }
+
       const created = await prisma.item.create({
         data: {
           userId: auth.user.userId,
+          categoryId,
           title: item.title,
           description: item.description,
           customData: JSON.stringify(item.customData),

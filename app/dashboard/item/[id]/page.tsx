@@ -6,12 +6,18 @@ import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/contexts/auth-context";
 import { getErrorMessage } from "@/lib/get-error-message";
 import { useCustomFields } from "@/hooks/use-custom-fields";
+import { useCategories } from "@/hooks/use-categories";
 import { ItemForm } from "@/app/components/items/item-form";
 import type { ItemFormInput } from "@/lib/schemas/item";
 import type { UploadablePhoto } from "@/lib/photo-upload";
 
 interface ItemResponse {
   id: string;
+  categoryId: string | null;
+  category: {
+    id: string;
+    name: string;
+  } | null;
   title: string;
   description: string | null;
   customData: string;
@@ -28,6 +34,7 @@ export default function ItemPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const { customFields, addCustomField, removeCustomField } = useCustomFields(Boolean(user));
+  const { categories, createCategory } = useCategories(Boolean(user));
 
   const fetchItem = useCallback(async () => {
     try {
@@ -119,13 +126,25 @@ export default function ItemPage() {
           error={error}
           isSaving={isSaving}
           defaultValues={{
+            categoryId: item.categoryId ?? "",
             title: item.title,
             description: item.description ?? "",
             customData: defaultCustomData,
           }}
           initialPhotos={item.photos}
           customFields={customFields}
+          categories={categories}
           onSubmit={handleSubmit}
+          onCreateCategory={async (categoryName) => {
+            try {
+              setError("");
+              return await createCategory({ name: categoryName });
+            } catch (submitError: unknown) {
+              const message = getErrorMessage(submitError, "Erro ao criar categoria");
+              setError(message);
+              throw new Error(message);
+            }
+          }}
           onAddCustomField={async (fieldName, fieldType) => {
             try {
               setError("");

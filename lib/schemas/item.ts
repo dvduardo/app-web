@@ -30,6 +30,10 @@ function normalizeCustomData(value: unknown) {
 }
 
 export const itemSchema = z.object({
+  categoryId: z.preprocess(
+    normalizeString,
+    z.string().min(1, "Categoria é obrigatória")
+  ),
   title: z.preprocess(
     normalizeString,
     z.string().min(1, "Título é obrigatório")
@@ -43,6 +47,10 @@ export const itemSchema = z.object({
 
 export const itemUpdateSchema = z
   .object({
+    categoryId: z.preprocess(
+      normalizeString,
+      z.string().min(1, "Categoria é obrigatória")
+    ).optional(),
     title: z.preprocess(
       normalizeString,
       z.string().min(1, "Título é obrigatório")
@@ -81,10 +89,29 @@ export const photoImportSchema = z.object({
   order: z.number().int().nonnegative().default(0),
 });
 
-export const importedItemSchema = itemSchema.extend({
+export const importedItemSchema = z.object({
+  categoryId: z.preprocess(normalizeString, z.string().min(1)).optional(),
+  categoryName: z.preprocess(normalizeString, z.string().min(1)).optional(),
+  title: z.preprocess(
+    normalizeString,
+    z.string().min(1, "Título é obrigatório")
+  ),
+  description: z.preprocess(normalizeNullableString, z.string().nullable()).default(null),
+  customData: z.preprocess(
+    normalizeCustomData,
+    z.record(z.string(), z.string()).default({})
+  ),
   photos: z.array(photoImportSchema).max(2).optional().default([]),
+});
+
+export const categorySchema = z.object({
+  name: z.preprocess(
+    normalizeString,
+    z.string().min(1, "Nome da categoria é obrigatório")
+  ),
 });
 
 export type ItemFormInput = z.infer<typeof itemSchema>;
 export type ItemUpdateInput = z.infer<typeof itemUpdateSchema>;
 export type CustomFieldInput = z.infer<typeof customFieldSchema>;
+export type CategoryInput = z.infer<typeof categorySchema>;

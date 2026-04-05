@@ -10,8 +10,10 @@ import { UploadablePhoto } from "@/lib/photo-upload";
 import { PhotoUpload } from "./photo-upload";
 import { ImageGalleryModal } from "@/app/components/ui/image-gallery-modal";
 import type { CustomField } from "@/hooks/use-custom-fields";
+import type { Category } from "@/hooks/use-categories";
 
 type ItemFormValues = z.input<typeof itemSchema>;
+const EMPTY_PHOTOS: UploadablePhoto[] = [];
 
 interface ItemFormProps {
   title: string;
@@ -21,9 +23,11 @@ interface ItemFormProps {
   defaultValues?: Partial<ItemFormValues>;
   initialPhotos?: UploadablePhoto[];
   customFields: CustomField[];
+  categories: Category[];
   error?: string;
   isSaving?: boolean;
   onSubmit: (values: ItemFormInput, photos: UploadablePhoto[]) => Promise<void>;
+  onCreateCategory: (categoryName: string) => Promise<Category>;
   onAddCustomField: (fieldName: string, fieldType: string) => Promise<void>;
   onRemoveCustomField: (fieldId: string, fieldName: string) => Promise<void>;
 }
@@ -34,18 +38,22 @@ export function ItemForm({
   savingLabel,
   cancelLabel = "Cancelar",
   defaultValues,
-  initialPhotos = [],
+  initialPhotos = EMPTY_PHOTOS,
   customFields,
+  categories,
   error = "",
   isSaving = false,
   onSubmit,
+  onCreateCategory,
   onAddCustomField,
   onRemoveCustomField,
 }: ItemFormProps) {
   const [formError, setFormError] = useState("");
-  const [photos, setPhotos] = useState<UploadablePhoto[]>(initialPhotos);
+  const [photos, setPhotos] = useState<UploadablePhoto[]>(() => initialPhotos);
   const [newFieldName, setNewFieldName] = useState("");
   const [newFieldType, setNewFieldType] = useState("text");
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryInitialIndex, setGalleryInitialIndex] = useState(0);
 
@@ -60,6 +68,7 @@ export function ItemForm({
   } = useForm<ItemFormValues, unknown, ItemFormInput>({
     resolver: zodResolver(itemSchema),
     defaultValues: {
+      categoryId: defaultValues?.categoryId ?? "",
       title: defaultValues?.title ?? "",
       description: defaultValues?.description ?? "",
       customData: defaultValues?.customData ?? {},
@@ -68,6 +77,7 @@ export function ItemForm({
 
   useEffect(() => {
     reset({
+      categoryId: defaultValues?.categoryId ?? "",
       title: defaultValues?.title ?? "",
       description: defaultValues?.description ?? "",
       customData: defaultValues?.customData ?? {},
@@ -79,8 +89,31 @@ export function ItemForm({
   }, [initialPhotos]);
 
   const displayedError = formError || error;
+  const categoryField = register("categoryId");
+  const selectedCategoryId = useWatch({ control, name: "categoryId" }) ?? "";
   const customDataValues =
     (useWatch({ control, name: "customData" }) as Record<string, string> | undefined) ?? {};
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) {
+      setFormError("Nome da categoria é obrigatório");
+      return;
+    }
+
+    try {
+      setIsCreatingCategory(true);
+      const createdCategory = await onCreateCategory(newCategoryName);
+      setValue("categoryId", createdCategory.id, { shouldDirty: true, shouldValidate: true });
+      setNewCategoryName("");
+      setFormError("");
+    } catch (submitError) {
+      setFormError(
+        submitError instanceof Error ? submitError.message : "Erro ao criar categoria"
+      );
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
 
   const handleAddField = async () => {
     if (!newFieldName.trim()) {
@@ -150,6 +183,71 @@ export function ItemForm({
         })}
         className="space-y-6"
       >
+        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+            <div>
+              <label
+                htmlFor="categoryId"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Categoria *
+              </label>
+              <select
+                id="categoryId"
+                className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.categoryId ? "border-red-400" : "border-gray-300"
+                }`}
+                value={selectedCategoryId}
+                onChange={(event) =>
+                  setValue("categoryId", event.target.value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                name={categoryField.name}
+                ref={categoryField.ref}
+                onBlur={categoryField.onBlur}
+              >
+                <option value="">Selecione uma categoria</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              {errors.categoryId && (
+                <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-dashed border-slate-300 bg-white p-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nova categoria
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(event) => setNewCategoryName(event.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Ex: Livros"
+                />
+                <button
+                  type="button"
+                  disabled={isCreatingCategory}
+                  onClick={() => void handleCreateCategory()}
+                  className="px-4 py-2 bg-slate-900 text-white rounded-md hover:bg-slate-800 disabled:opacity-50"
+                >
+                  {isCreatingCategory ? "Criando..." : "Criar"}
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                Ao criar, ela já fica selecionada para este item.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
             Título *
