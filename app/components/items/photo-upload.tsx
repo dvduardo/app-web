@@ -69,17 +69,17 @@ export function PhotoUpload({
   };
 
   return (
-    <section className="rounded-[1.75rem] border border-slate-200/70 bg-white/80 p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
+    <section className="vault-app-panel rounded-[1.75rem] p-4 sm:p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <label className="block text-sm font-semibold text-slate-800">
+          <label className="block text-sm font-semibold text-slate-100">
             Fotos
           </label>
           <p className="mt-1 text-xs text-slate-500">
             Adicione ate {MAX_ITEM_PHOTO_COUNT} imagens para o item.
           </p>
         </div>
-        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+        <span className="rounded-full bg-white/[0.04] px-3 py-1 text-xs font-medium text-slate-400">
           {photos.length}/{MAX_ITEM_PHOTO_COUNT}
         </span>
       </div>
@@ -90,7 +90,7 @@ export function PhotoUpload({
             {photos.map((photo, index) => (
               <div
                 key={photo.id ?? `photo-${index}`}
-                className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-slate-100"
+                className="group relative overflow-hidden rounded-2xl border border-white/8 bg-[#0a0a14]"
               >
                 <button
                   type="button"
@@ -110,7 +110,7 @@ export function PhotoUpload({
                 <button
                   type="button"
                   onClick={() => void onRemove(photo, index)}
-                  className="absolute right-2 top-2 rounded-full bg-rose-600 px-2 py-1 text-xs font-semibold text-white shadow hover:bg-rose-700"
+                  className="absolute right-2 top-2 rounded-full bg-rose-500/90 px-2 py-1 text-xs font-semibold text-white shadow hover:bg-rose-500"
                   title="Remover foto"
                 >
                   Remover
@@ -121,7 +121,7 @@ export function PhotoUpload({
         )}
 
         {photos.length < MAX_ITEM_PHOTO_COUNT && (
-          <div className="rounded-[1.5rem] border-2 border-dashed border-slate-300 bg-slate-50/80 p-6">
+          <div className="rounded-[1.5rem] border-2 border-dashed border-indigo-400/18 bg-white/[0.03] p-6">
             <input
               type="file"
               id="photos"
@@ -132,7 +132,7 @@ export function PhotoUpload({
               className="hidden"
             />
             <label htmlFor="photos" className="block cursor-pointer text-center">
-              <div className="text-slate-600">
+              <div className="text-slate-300">
                 <p className="text-sm font-medium">Toque para adicionar imagens</p>
                 <p className="mt-1 text-xs text-slate-500">
                   {photos.length}/{MAX_ITEM_PHOTO_COUNT} fotos selecionadas

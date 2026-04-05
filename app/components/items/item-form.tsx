@@ -96,16 +96,17 @@ export function ItemForm({
 
   const displayedError = formError || error;
   const categoryField = register("categoryId");
-  const statusField = register("status");
-  const favoriteField = register("isFavorite");
-  const selectedCategoryId = useWatch({ control, name: "categoryId" }) ?? "";
-  const selectedStatus = useWatch({ control, name: "status" }) ?? "owned";
-  const isFavorite = useWatch({ control, name: "isFavorite" }) ?? false;
+  const selectedCategoryId =
+    (useWatch({ control, name: "categoryId" }) as string | undefined) ?? "";
+  const selectedStatus =
+    (useWatch({ control, name: "status" }) as string | undefined) ?? "owned";
+  const isFavorite =
+    (useWatch({ control, name: "isFavorite" }) as boolean | undefined) ?? false;
   const customDataValues =
     (useWatch({ control, name: "customData" }) as Record<string, string> | undefined) ?? {};
   const isEditing = title.toLowerCase().includes("editar");
   const inputClassName =
-    "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none";
+    "vault-app-input w-full rounded-2xl px-4 py-3 text-base transition focus:outline-none";
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
@@ -173,21 +174,21 @@ export function ItemForm({
 
   return (
     <div className="space-y-5">
-      <section className="rounded-[2rem] border border-white/20 bg-white/10 p-5 text-white shadow-2xl backdrop-blur-xl sm:p-7">
+      <section className="vault-app-panel rounded-[2rem] p-5 text-white sm:p-7">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-2xl">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white/85">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-500/8 px-3 py-1 text-xs font-medium text-indigo-200">
               <Sparkles className="h-3.5 w-3.5" />
               {isEditing ? "Ajuste os detalhes do item" : "Crie um novo item para sua coleção"}
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
-            <p className="mt-2 text-sm leading-6 text-white/75 sm:text-base">
-              Organize categoria, descrição, fotos e campos extras em uma experiência mais confortável no mobile.
+            <h1 className="font-display text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">{title}</h1>
+            <p className="mt-2 text-sm leading-6 text-slate-400 sm:text-base">
+              Organize categoria, descrição, fotos e campos extras do seu item.
             </p>
           </div>
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 self-start rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/15"
+            className="inline-flex items-center gap-2 self-start rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/[0.05]"
           >
             <ArrowLeft className="h-4 w-4" />
             Voltar
@@ -196,8 +197,8 @@ export function ItemForm({
       </section>
 
       {displayedError && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
-          <p className="text-sm font-medium text-red-800">{displayedError}</p>
+        <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-4">
+          <p className="text-sm font-medium text-red-200">{displayedError}</p>
         </div>
       )}
 
@@ -208,15 +209,8 @@ export function ItemForm({
         })}
         className="space-y-5"
       >
-        <input type="hidden" {...statusField} value={selectedStatus} />
-        <input
-          type="hidden"
-          {...favoriteField}
-          value={isFavorite ? "true" : "false"}
-        />
-
-        <section className="rounded-[1.75rem] border border-slate-200/70 bg-white/85 p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
-          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
+        <section className="vault-app-panel rounded-[1.75rem] p-4 sm:p-6">
+          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-300">
             <FolderPlus className="h-4 w-4" />
             Categoria
           </div>
@@ -225,14 +219,14 @@ export function ItemForm({
             <div>
               <label
                 htmlFor="categoryId"
-                className="mb-2 block text-sm font-medium text-slate-700"
+                className="mb-2 block text-sm font-medium text-slate-300"
               >
                 Categoria *
               </label>
               <select
                 id="categoryId"
                 className={`${inputClassName} ${
-                  errors.categoryId ? "border-red-400" : "border-slate-200"
+                  errors.categoryId ? "border-red-400" : ""
                 }`}
                 value={selectedCategoryId}
                 onChange={(event) =>
@@ -253,12 +247,12 @@ export function ItemForm({
                 ))}
               </select>
               {errors.categoryId && (
-                <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>
+                <p className="mt-1 text-sm text-red-300">{errors.categoryId.message}</p>
               )}
             </div>
 
-            <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50/80 p-4">
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+            <div className="rounded-[1.5rem] border border-dashed border-white/10 bg-white/[0.03] p-4">
+              <label className="mb-2 block text-sm font-medium text-slate-300">
                 Nova categoria
               </label>
               <div className="flex flex-col gap-2 sm:flex-row">
@@ -273,7 +267,7 @@ export function ItemForm({
                   type="button"
                   disabled={isCreatingCategory}
                   onClick={() => void handleCreateCategory()}
-                  className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
+                  className="vault-button-primary rounded-2xl px-4 py-3 text-sm font-medium text-white transition disabled:opacity-50"
                 >
                   {isCreatingCategory ? "Criando..." : "Criar"}
                 </button>
@@ -285,14 +279,14 @@ export function ItemForm({
           </div>
         </section>
 
-        <section className="rounded-[1.75rem] border border-slate-200/70 bg-white/85 p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
-          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
+        <section className="vault-app-panel rounded-[1.75rem] p-4 sm:p-6">
+          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-300">
             <FileText className="h-4 w-4" />
             Informacoes principais
           </div>
           <div className="space-y-4">
             <div>
-              <label htmlFor="title" className="mb-2 block text-sm font-medium text-slate-700">
+              <label htmlFor="title" className="mb-2 block text-sm font-medium text-slate-300">
                 Titulo *
               </label>
               <input
@@ -300,17 +294,17 @@ export function ItemForm({
                 type="text"
                 placeholder="Ex: Harry Potter"
                 className={`${inputClassName} ${
-                  errors.title ? "border-red-400" : "border-slate-200"
+                  errors.title ? "border-red-400" : ""
                 }`}
                 {...register("title")}
               />
               {errors.title && (
-                <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+                <p className="mt-1 text-sm text-red-300">{errors.title.message}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="description" className="mb-2 block text-sm font-medium text-slate-700">
+              <label htmlFor="description" className="mb-2 block text-sm font-medium text-slate-300">
                 Descricao
               </label>
               <textarea
@@ -323,8 +317,8 @@ export function ItemForm({
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,280px)]">
-              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-4">
-                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
+                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-300">
                   <Radio className="h-4 w-4" />
                   Status do item
                 </div>
@@ -344,12 +338,12 @@ export function ItemForm({
                         }
                         className={`rounded-2xl border px-4 py-3 text-left transition ${
                           isActive
-                            ? "border-slate-900 bg-slate-900 text-white"
-                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                            ? "border-indigo-400/30 bg-indigo-500/12 text-white"
+                            : "border-white/10 bg-[#0a0a14] text-slate-300 hover:border-indigo-400/20"
                         }`}
                       >
                         <div className="text-sm font-semibold">{option.label}</div>
-                        <div className={`mt-1 text-xs ${isActive ? "text-white/75" : "text-slate-500"}`}>
+                        <div className={`mt-1 text-xs ${isActive ? "text-slate-300" : "text-slate-500"}`}>
                           {option.description}
                         </div>
                       </button>
@@ -358,8 +352,8 @@ export function ItemForm({
                 </div>
               </div>
 
-              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-4">
-                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
+                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-300">
                   <Heart className="h-4 w-4" />
                   Destaque na colecao
                 </div>
@@ -375,21 +369,21 @@ export function ItemForm({
                   }
                   className={`flex w-full items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
                     isFavorite
-                      ? "border-rose-200 bg-rose-50 text-rose-700"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                      ? "border-rose-400/25 bg-rose-500/10 text-rose-300"
+                      : "border-white/10 bg-[#0a0a14] text-slate-300 hover:border-indigo-400/20"
                   }`}
                 >
                   <div>
                     <div className="text-sm font-semibold">
                       {isFavorite ? "Marcado como favorito" : "Marcar como favorito"}
                     </div>
-                    <div className={`mt-1 text-xs ${isFavorite ? "text-rose-600" : "text-slate-500"}`}>
+                    <div className={`mt-1 text-xs ${isFavorite ? "text-rose-300" : "text-slate-500"}`}>
                       Use isso para destacar pecas queridas e raridades.
                     </div>
                   </div>
                   <div
                     className={`flex h-7 w-12 items-center rounded-full p-1 transition ${
-                      isFavorite ? "bg-rose-500" : "bg-slate-300"
+                      isFavorite ? "bg-rose-500" : "bg-slate-600"
                     }`}
                   >
                     <div
@@ -425,27 +419,27 @@ export function ItemForm({
         />
 
         {customFields.length > 0 && (
-          <section className="rounded-[1.75rem] border border-slate-200/70 bg-white/85 p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
-            <h3 className="mb-4 text-lg font-semibold text-slate-900">
+          <section className="vault-app-panel rounded-[1.75rem] p-4 sm:p-6">
+            <h3 className="mb-4 text-lg font-semibold text-slate-100">
               Campos customizados
             </h3>
             <div className="space-y-4">
               {customFields.map((field) => (
                 <div
                   key={field.id}
-                  className="rounded-[1.25rem] border border-slate-200 bg-slate-50/70 p-4"
+                  className="rounded-[1.25rem] border border-white/10 bg-white/[0.03] p-4"
                 >
                   <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <label
                       htmlFor={field.fieldName}
-                      className="block text-sm font-medium text-slate-700"
+                      className="block text-sm font-medium text-slate-300"
                     >
                       {field.fieldName}
                     </label>
                     <button
                       type="button"
                       onClick={() => void handleRemoveField(field.id, field.fieldName)}
-                      className="self-start rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700 transition hover:bg-red-200"
+                      className="self-start rounded-full bg-red-500/10 px-3 py-1 text-xs font-medium text-red-300 transition hover:bg-red-500/15"
                     >
                       Remover
                     </button>
@@ -491,14 +485,14 @@ export function ItemForm({
           </section>
         )}
 
-        <section className="rounded-[1.75rem] border border-slate-200/70 bg-white/85 p-4 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
-          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
+        <section className="vault-app-panel rounded-[1.75rem] p-4 sm:p-6">
+          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-300">
             <Shapes className="h-4 w-4" />
             Adicionar campo customizado
           </div>
           <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-slate-300">
                 Nome do Campo
               </label>
               <input
@@ -510,7 +504,7 @@ export function ItemForm({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-slate-300">
                 Tipo
               </label>
               <select
@@ -527,25 +521,25 @@ export function ItemForm({
             <button
               type="button"
               onClick={() => void handleAddField()}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/[0.05]"
             >
               + Adicionar Campo
             </button>
           </div>
         </section>
 
-        <div className="sticky bottom-3 z-20 rounded-[1.5rem] border border-white/60 bg-white/90 p-3 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.45)] backdrop-blur">
+        <div className="sticky bottom-3 z-20 rounded-[1.5rem] border border-white/8 bg-[#0d101b]/92 p-3 shadow-[0_18px_50px_-30px_rgba(2,6,23,0.8)] backdrop-blur">
           <div className="flex flex-col-reverse gap-3 sm:flex-row">
           <button
             type="submit"
             disabled={isSaving}
-            className="flex-1 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 font-semibold text-white transition hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
+            className="vault-button-primary flex-1 rounded-2xl px-4 py-3 font-semibold text-white transition disabled:opacity-50"
           >
             {isSaving ? savingLabel : submitLabel}
           </button>
           <Link
             href="/dashboard"
-            className="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-center font-medium text-slate-700 transition hover:bg-slate-50"
+            className="flex-1 rounded-2xl border border-white/10 px-4 py-3 text-center font-medium text-slate-200 transition hover:bg-white/[0.05]"
           >
             {cancelLabel}
           </Link>

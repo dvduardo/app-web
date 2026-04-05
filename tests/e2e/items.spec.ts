@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { createCategoryViaAPI, createItemViaAPI, generateTestUser, setAuthCookie, TestCategory, TestUser } from './helpers/auth';
+import { createCategoryViaAPI, createItemViaAPI, generateTestUser, loginViaAPI, TestCategory, TestUser } from './helpers/auth';
 
 test.describe('Gerenciamento de Itens', () => {
   let testUser: TestUser;
@@ -15,7 +15,7 @@ test.describe('Gerenciamento de Itens', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    await setAuthCookie(page, testUser);
+    await loginViaAPI(page, testUser.email, testUser.password);
     testCategory = await createCategoryViaAPI(page, `Categoria Itens ${Date.now()}`);
   });
 
@@ -48,7 +48,7 @@ test.describe('Gerenciamento de Itens', () => {
       await page.getByRole('button', { name: 'Salvar Item' }).click();
 
       await expect(page).toHaveURL('/dashboard');
-      await expect(page.getByText(itemTitle)).toBeVisible();
+      await expect(page.getByText(itemTitle).first()).toBeVisible();
     });
 
     test('deve cancelar criação e voltar ao dashboard', async ({ page }) => {
@@ -83,7 +83,7 @@ test.describe('Gerenciamento de Itens', () => {
       await page.getByRole('button', { name: 'Salvar' }).click();
 
       await expect(page).toHaveURL('/dashboard');
-      await expect(page.getByText(updatedTitle)).toBeVisible();
+      await expect(page.getByText(updatedTitle).first()).toBeVisible();
     });
 
     test('deve exibir link para voltar ao dashboard na página de edição', async ({ page }) => {
@@ -117,12 +117,12 @@ test.describe('Gerenciamento de Itens', () => {
 
       await page.goto('/dashboard');
       await expect(page.getByText('Carregando itens...')).not.toBeVisible();
-      await expect(page.getByText(itemTitle)).toBeVisible();
+      await expect(page.getByText(itemTitle).first()).toBeVisible();
 
       page.on('dialog', (dialog) => dialog.accept());
       await page.getByRole('button', { name: new RegExp(`Deletar item ${itemTitle}`, 'i') }).click();
 
-      await expect(page.getByText(itemTitle)).not.toBeVisible();
+      await expect(page.getByText(itemTitle).first()).not.toBeVisible();
     });
 
     test('deve cancelar a exclusão ao recusar o diálogo', async ({ page }) => {
@@ -139,12 +139,12 @@ test.describe('Gerenciamento de Itens', () => {
 
       await page.goto('/dashboard');
       await expect(page.getByText('Carregando itens...')).not.toBeVisible();
-      await expect(page.getByText(itemTitle)).toBeVisible();
+      await expect(page.getByText(itemTitle).first()).toBeVisible();
 
       page.on('dialog', (dialog) => dialog.dismiss());
       await page.getByRole('button', { name: new RegExp(`Deletar item ${itemTitle}`, 'i') }).click();
 
-      await expect(page.getByText(itemTitle)).toBeVisible();
+      await expect(page.getByText(itemTitle).first()).toBeVisible();
     });
   });
 });

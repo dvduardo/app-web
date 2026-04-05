@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { createCategoryViaAPI, createItemViaAPI, generateTestUser, setAuthCookie, TestCategory, TestUser } from './helpers/auth';
+import { createCategoryViaAPI, createItemViaAPI, generateTestUser, loginViaAPI, TestCategory, TestUser } from './helpers/auth';
 
 test.describe('Dashboard', () => {
   test('deve redirecionar usuários não autenticados para o login', async ({ page }) => {
@@ -22,15 +22,16 @@ test.describe('Dashboard', () => {
     });
 
     test.beforeEach(async ({ page }) => {
-      await setAuthCookie(page, testUser);
+      await loginViaAPI(page, testUser.email, testUser.password);
       testCategory = await createCategoryViaAPI(page, `Categoria Dashboard ${Date.now()}`);
     });
 
     test('deve exibir o cabeçalho do dashboard', async ({ page }) => {
       await page.goto('/dashboard');
 
-      await expect(page.getByText('Minhas Coleções')).toBeVisible();
-      await expect(page.getByText(/Bem-vindo/)).toBeVisible();
+      await expect(page).toHaveURL('/dashboard');
+      await expect(page.getByText('Minhas Coleções').first()).toBeVisible();
+      await expect(page.getByText(/Dashboard da coleção/i)).toBeVisible();
     });
 
     test('deve exibir os botões de ação', async ({ page }) => {
@@ -82,16 +83,16 @@ test.describe('Dashboard', () => {
 
       await page.goto('/dashboard');
       await expect(page.getByText('Carregando itens...')).not.toBeVisible();
-      await expect(page.getByText(itemTitle)).toBeVisible();
+      await expect(page.getByText(itemTitle).first()).toBeVisible();
 
       await page.fill('#search', 'xyzinexistente');
       await expect(
         page.getByText('Nenhum item encontrado com os filtros atuais')
       ).toBeVisible({ timeout: 10000 });
-      await expect(page.getByText(itemTitle)).not.toBeVisible();
+      await expect(page.getByText(itemTitle).first()).not.toBeVisible();
 
       await page.fill('#search', itemTitle);
-      await expect(page.getByText(itemTitle)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText(itemTitle).first()).toBeVisible({ timeout: 10000 });
     });
   });
 });

@@ -60,4 +60,28 @@ describe('getErrorMessage', () => {
     const result = getErrorMessage(null, 'Fallback message')
     expect(result).toBe('Fallback message')
   })
+
+  it('should translate known API messages', () => {
+    const axiosError = new axios.AxiosError('Request failed')
+    axiosError.response = {
+      data: { error: 'invalid payload' },
+      status: 400,
+      statusText: 'Bad Request',
+      headers: {},
+      config: {} as any,
+    }
+
+    expect(getErrorMessage(axiosError, 'Fallback message')).toBe(
+      'Dados inválidos. Revise as informações enviadas.'
+    )
+  })
+
+  it('should translate known generic error messages', () => {
+    expect(getErrorMessage(new Error('internal server error'), 'Fallback message')).toBe(
+      'Erro interno do servidor. Tente novamente.'
+    )
+    expect(getErrorMessage(new Error('email and password are required'), 'Fallback message')).toBe(
+      'Email e senha são obrigatórios.'
+    )
+  })
 })

@@ -76,16 +76,10 @@ export async function createCategoryViaAPI(
   page: Page,
   name = `Categoria ${Date.now()}`
 ): Promise<TestCategory> {
-  const data = await page.evaluate(async ({ categoryName, baseUrl }) => {
-    const response = await fetch(`${baseUrl}/api/categories`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: categoryName }),
-    });
-
-    return response.json();
-  }, { categoryName: name, baseUrl: TEST_BASE_URL });
+  const response = await page.request.post(`${TEST_BASE_URL}/api/categories`, {
+    data: { name },
+  })
+  const data = await response.json()
 
   return data.category as TestCategory;
 }
@@ -101,14 +95,9 @@ export async function createItemViaAPI(
     customData: string;
   }
 ) {
-  return page.evaluate(async ({ payload, baseUrl }) => {
-    const response = await fetch(`${baseUrl}/api/items`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+  const response = await page.request.post(`${TEST_BASE_URL}/api/items`, {
+    data: input,
+  })
 
-    return response.json();
-  }, { payload: input, baseUrl: TEST_BASE_URL });
+  return response.json()
 }
