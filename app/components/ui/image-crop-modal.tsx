@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Crop, Move, RotateCcw, Search } from "lucide-react";
 import type { ImageCropConfig } from "@/lib/photo-upload";
 
@@ -51,13 +52,13 @@ export function ImageCropModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen || !file) {
+  if (!isOpen || !file || typeof document === "undefined") {
     return null;
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 py-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 py-4 sm:py-6"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -67,7 +68,8 @@ export function ImageCropModal({
       aria-modal="true"
       aria-label="Editar enquadramento da imagem"
     >
-      <div className="vault-app-panel w-full max-w-4xl rounded-[2rem] p-4 text-white shadow-2xl sm:p-6">
+      <div className="vault-app-panel flex max-h-[calc(100vh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] text-white shadow-2xl">
+        <div className="overflow-y-auto px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-6">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
           <div className="space-y-4">
             <div>
@@ -181,33 +183,37 @@ export function ImageCropModal({
                 Resetar ajuste
               </button>
             </div>
+          </div>
+        </div>
+        </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-              <button
-                type="button"
-                onClick={onSkip}
-                className="rounded-2xl border border-white/10 bg-[#0a0a14] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-indigo-300/30 hover:bg-white/[0.05]"
-              >
-                Usar imagem original
-              </button>
-              <button
-                type="button"
-                onClick={() => onConfirm(cropConfig)}
-                className="vault-button-primary rounded-2xl px-4 py-3 text-sm font-semibold text-white transition hover:scale-[1.01]"
-              >
-                Aplicar recorte
-              </button>
-              <button
-                type="button"
-                onClick={onCancel}
-                className="rounded-2xl border border-rose-400/15 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-200 transition hover:bg-rose-500/15"
-              >
-                Cancelar foto
-              </button>
-            </div>
+        <div className="sticky bottom-0 border-t border-white/8 bg-[#090b15]/95 px-4 py-4 backdrop-blur sm:px-6">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <button
+              type="button"
+              onClick={onSkip}
+              className="rounded-2xl border border-white/10 bg-[#0a0a14] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-indigo-300/30 hover:bg-white/[0.05]"
+            >
+              Usar imagem original
+            </button>
+            <button
+              type="button"
+              onClick={() => onConfirm(cropConfig)}
+              className="vault-button-primary rounded-2xl px-4 py-3 text-sm font-semibold text-white transition hover:scale-[1.01]"
+            >
+              Aplicar recorte
+            </button>
+            <button
+              type="button"
+              onClick={onCancel}
+              className="rounded-2xl border border-rose-400/15 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-200 transition hover:bg-rose-500/15 sm:col-span-2 lg:col-span-1"
+            >
+              Cancelar foto
+            </button>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
