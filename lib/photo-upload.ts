@@ -17,6 +17,13 @@ export interface UploadablePhoto {
   file?: File;
 }
 
+export interface ImageCropConfig {
+  aspectRatio: number;
+  zoom: number;
+  offsetX: number;
+  offsetY: number;
+}
+
 export function validatePhotoFile(file: File): string | null {
   if (!ALLOWED_ITEM_PHOTO_TYPES.includes(file.type as AllowedItemPhotoType)) {
     return "Formato inválido. Use JPEG, PNG, WEBP ou GIF.";
@@ -75,6 +82,91 @@ export async function optimizeImageFile(file: File): Promise<File> {
   const baseName = file.name.replace(/\.[^.]+$/, "");
 
   return new File([blob], `${baseName}.${extension}`, {
+    type: outputType,
+    lastModified: file.lastModified,
+  });
+}
+
+export async function cropImageFile(
+  file: File,
+  config: ImageCropConfig
+): Promise<File> {
+  if (typeof window === "undefined" || file.type === "image/gif") {
+    return file;
+  }
+
+  const bitmap = await createImageBitmap(file);
+  const normalizedZoom = Number.isFinite(config.zoom)
+    ? Math.min(3, Math.max(1, config.zoom))
+    : 1;
+  const aspectRatio = Number.isFinite(config.aspectRatio) && config.aspectRatio > 0
+    ? config.aspectRatio
+    : 4 / 3;
+  const normalizedOffsetX = Number.isFinite(config.offsetX)
+    ? Math.min(1, Math.max(-1, config.offsetX))
+    : 0;
+  const normalizedOffsetY = Number.isFinite(config.offsetY)
+    ? Math.min(1, Math.max(-1, config.offsetY))
+    : 0;
+
+  const imageAspectRatio = bitmap.width / bitmap.height;
+  const baseCropWidth =
+    imageAspectRatio > aspectRatio
+      ? bitmap.height * aspectRatio
+      : bitmap.width;
+  const baseCropHeight =
+    imageAspectRatio > aspectRatio
+      ? bitmap.height
+      : bitmap.width / aspectRatio;
+
+  const cropWidth = Math.max(1, Math.round(baseCropWidth / normalizedZoom));
+  const cropHeight = Math.max(1, Math.round(baseCropHeight / normalizedZoom));
+  const maxPanX = Math.max(0, (bitmap.width - cropWidth) / 2);
+  const maxPanY = Math.max(0, (bitmap.height - cropHeight) / 2);
+  const sourceX = Math.round(
+    bitmap.width / 2 - cropWidth / 2 + normalizedOffsetX * maxPanX
+  );
+  const sourceY = Math.round(
+    bitmap.height / 2 - cropHeight / 2 + normalizedOffsetY * maxPanY
+  );
+
+  const canvas = document.createElement("canvas");
+  canvas.width = cropWidth;
+  canvas.height = cropHeight;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    bitmap.close();
+    return file;
+  }
+
+  context.drawImage(
+    bitmap,
+    sourceX,
+    sourceY,
+    cropWidth,
+    cropHeight,
+    0,
+    0,
+    cropWidth,
+    cropHeight
+  );
+  bitmap.close();
+
+  const outputType =
+    file.type === "image/png" || file.type === "image/webp"
+      ? file.type
+      : "image/jpeg";
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    context.canvas.toBlob(resolve, outputType, 0.92);
+  });
+
+  if (!blob) {
+    return file;
+  }
+
+  return new File([blob], file.name, {
     type: outputType,
     lastModified: file.lastModified,
   });

@@ -5,18 +5,26 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { apiClient } from "@/lib/api-client";
 import { getErrorMessage } from "@/lib/get-error-message";
-import { useCustomFields } from "@/hooks/use-custom-fields";
 import { useCategories } from "@/hooks/use-categories";
 import { ItemForm } from "@/app/components/items/item-form";
 import type { ItemFormInput } from "@/lib/schemas/item";
 import type { UploadablePhoto } from "@/lib/photo-upload";
+import type { CustomField } from "@/hooks/use-custom-fields";
+
+function createLocalCustomField(fieldName: string, fieldType: string): CustomField {
+  return {
+    id: `local-${fieldName}-${Date.now()}`,
+    fieldName,
+    fieldType,
+  };
+}
 
 export default function NewItemPage() {
   const { user, isLoading, mounted } = useAuth();
   const router = useRouter();
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const { customFields, addCustomField, removeCustomField } = useCustomFields(Boolean(user));
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const { categories, createCategory } = useCategories(Boolean(user));
 
   useEffect(() => {
@@ -94,7 +102,20 @@ export default function NewItemPage() {
           onAddCustomField={async (fieldName, fieldType) => {
             try {
               setError("");
-              await addCustomField({ fieldName, fieldType });
+              const normalizedFieldName = fieldName.trim();
+              if (
+                customFields.some(
+                  (field) =>
+                    field.fieldName.toLowerCase() === normalizedFieldName.toLowerCase()
+                )
+              ) {
+                throw new Error("Esse campo já foi adicionado neste item");
+              }
+
+              setCustomFields((currentFields) => [
+                ...currentFields,
+                createLocalCustomField(normalizedFieldName, fieldType),
+              ]);
             } catch (submitError: unknown) {
               const message = getErrorMessage(submitError, "Erro ao adicionar campo");
               setError(message);
@@ -104,7 +125,9 @@ export default function NewItemPage() {
           onRemoveCustomField={async (fieldId, fieldName) => {
             try {
               setError("");
-              await removeCustomField(fieldId);
+              setCustomFields((currentFields) =>
+                currentFields.filter((field) => field.id !== fieldId)
+              );
             } catch (submitError: unknown) {
               const message = getErrorMessage(
                 submitError,
