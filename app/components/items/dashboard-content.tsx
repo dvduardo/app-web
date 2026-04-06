@@ -135,13 +135,13 @@ export function DashboardContent({ userName }: { userName: string }) {
                   <div className="max-w-2xl">
                     <div className="inline-flex items-center gap-2 rounded-full border border-indigo-300/18 bg-indigo-400/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-indigo-100">
                       <Sparkles className="h-3.5 w-3.5" />
-                      Dashboard da coleção
+                      Sua coleção
                     </div>
                     <h2 className="mt-4 font-display text-3xl font-semibold leading-tight tracking-[-0.05em] text-white sm:text-4xl">
-                      Bem-vindo, {firstName}. Seu acervo fica em foco logo no topo.
+                      Bem-vindo, {firstName}. Tudo o que importa na sua coleção, logo aqui.
                     </h2>
                     <p className="mt-3 max-w-xl text-sm leading-7 text-slate-300 sm:text-base">
-                      A visão web agora mistura contexto, ações principais e destaque visual para reduzir o espaço vazio antes da grade de itens.
+                      Acompanhe seus itens, retome favoritos e encontre o que procura sem perder tempo. Use a busca e os filtros para chegar mais rápido ao que você quer ver.
                     </p>
                   </div>
 
@@ -260,7 +260,7 @@ export function DashboardContent({ userName }: { userName: string }) {
               <article className="relative overflow-hidden rounded-[1.9rem] border border-indigo-300/18 bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#581c87] p-5 shadow-[0_24px_50px_rgba(15,23,42,0.35)]">
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.06),rgba(2,6,23,0.82))]" />
                 <div className="relative flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-100/85">
-                  <span>{featuredItem ? "Destaque da coleção" : "Espaço de destaque"}</span>
+                  <span>{featuredItem ? "Destaque da coleção" : "Seu próximo destaque"}</span>
                   <Heart className={`h-4 w-4 ${featuredItem?.isFavorite ? "fill-rose-400 text-rose-400" : "text-indigo-100/80"}`} />
                 </div>
 
@@ -293,7 +293,7 @@ export function DashboardContent({ userName }: { userName: string }) {
                   <p className="mt-2 text-sm leading-6 text-slate-200/78">
                     {featuredItem?.description
                       ? featuredItem.description
-                      : "Use este espaço para destacar um item favorito ou recente e dar mais presença ao topo do dashboard na visão web."}
+                      : "Marque um item como favorito para deixá-lo em evidência e acessar o que mais importa com mais rapidez."}
                   </p>
                 </div>
               </article>
@@ -301,7 +301,7 @@ export function DashboardContent({ userName }: { userName: string }) {
               <div className="grid grid-cols-2 gap-4">
                 <article className="vault-app-subpanel rounded-[1.6rem] p-4">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Últimos filtros
+                    Seu foco agora
                   </p>
                   <p className="mt-3 font-display text-xl font-semibold tracking-[-0.04em] text-white">
                     {favoritesOnly ? "Favoritos" : selectedStatus ? "Status ativo" : "Visão geral"}
@@ -317,13 +317,13 @@ export function DashboardContent({ userName }: { userName: string }) {
 
                 <article className="vault-app-subpanel rounded-[1.6rem] p-4">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Organização
+                    Visualização
                   </p>
                   <p className="mt-3 font-display text-xl font-semibold tracking-[-0.04em] text-white">
                     {viewMode === "grid" ? "Grade ativa" : "Lista ativa"}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-slate-400">
-                    Alterne entre densidade visual e leitura rápida sem perder o contexto da coleção.
+                    Escolha entre uma visão mais visual ou uma leitura mais direta, do jeito que ficar melhor para você.
                   </p>
                 </article>
               </div>

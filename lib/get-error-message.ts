@@ -22,6 +22,10 @@ export function getErrorMessage(
   fallbackMessage: string
 ): string {
   if (axios.isAxiosError(error)) {
+    if (error.response?.status === 413) {
+      return "A foto é grande demais para upload. Use uma imagem de até 4MB.";
+    }
+
     const apiMessage = error.response?.data?.error;
     if (typeof apiMessage === "string" && apiMessage.trim()) {
       return translateApiMessage(apiMessage);

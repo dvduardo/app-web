@@ -4,6 +4,7 @@ import Image from "next/image";
 import { getPhotoSrc } from "@/lib/photo-helper";
 import {
   MAX_ITEM_PHOTO_COUNT,
+  MAX_ITEM_PHOTO_BYTES,
   UploadablePhoto,
   optimizeImageFile,
   validatePhotoFile,
@@ -26,6 +27,8 @@ export function PhotoUpload({
   onError,
   onPreview,
 }: PhotoUploadProps) {
+  const maxPhotoSizeInMb = Math.floor(MAX_ITEM_PHOTO_BYTES / (1024 * 1024));
+
   const handlePhotoChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -76,7 +79,7 @@ export function PhotoUpload({
             Fotos
           </label>
           <p className="mt-1 text-xs text-slate-500">
-            Adicione ate {MAX_ITEM_PHOTO_COUNT} imagens para o item.
+            Adicione ate {MAX_ITEM_PHOTO_COUNT} imagens para o item, com no maximo {maxPhotoSizeInMb}MB por foto.
           </p>
         </div>
         <span className="rounded-full bg-white/[0.04] px-3 py-1 text-xs font-medium text-slate-400">
@@ -138,7 +141,7 @@ export function PhotoUpload({
                   {photos.length}/{MAX_ITEM_PHOTO_COUNT} fotos selecionadas
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  JPEG, PNG, WEBP ou GIF de até 5MB
+                  JPEG, PNG, WEBP ou GIF de até {maxPhotoSizeInMb}MB por foto
                 </p>
               </div>
             </label>

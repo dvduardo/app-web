@@ -1,5 +1,6 @@
 export const MAX_ITEM_PHOTO_COUNT = 2;
-export const MAX_ITEM_PHOTO_BYTES = 5 * 1024 * 1024;
+// Keep below Vercel's function payload ceiling so multipart uploads don't 413 in production.
+export const MAX_ITEM_PHOTO_BYTES = 4 * 1024 * 1024;
 export const ALLOWED_ITEM_PHOTO_TYPES = [
   "image/jpeg",
   "image/png",
