@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/contexts/auth-context";
 import { getErrorMessage } from "@/lib/get-error-message";
-import { useCustomFields } from "@/hooks/use-custom-fields";
 import { useCategories } from "@/hooks/use-categories";
 import { ItemForm } from "@/app/components/items/item-form";
 import type { ItemFormInput } from "@/lib/schemas/item";
 import type { UploadablePhoto } from "@/lib/photo-upload";
+import type { CustomField } from "@/hooks/use-custom-fields";
 
 interface ItemResponse {
   id: string;
@@ -26,6 +26,14 @@ interface ItemResponse {
   photos: UploadablePhoto[];
 }
 
+function createLocalCustomField(fieldName: string, fieldType = "text"): CustomField {
+  return {
+    id: `local-${fieldName}`,
+    fieldName,
+    fieldType,
+  };
+}
+
 export default function ItemPage() {
   const params = useParams();
   const itemId = params.id as string;
@@ -35,7 +43,7 @@ export default function ItemPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-  const { customFields, addCustomField, removeCustomField } = useCustomFields(Boolean(user));
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const { categories, createCategory } = useCategories(Boolean(user));
 
   const fetchItem = useCallback(async () => {
@@ -60,6 +68,26 @@ export default function ItemPage() {
     }
   }, [authLoading, fetchItem, router, user]);
 
+  const defaultCustomData = useMemo(() => {
+    try {
+      return JSON.parse(item?.customData || "{}") as Record<string, string>;
+    } catch {
+      return {};
+    }
+  }, [item?.customData]);
+
+  const initialCustomFields = useMemo(
+    () =>
+      Object.keys(defaultCustomData).map((fieldName) =>
+        createLocalCustomField(fieldName)
+      ),
+    [defaultCustomData]
+  );
+
+  useEffect(() => {
+    setCustomFields(initialCustomFields);
+  }, [initialCustomFields]);
+
   if (!mounted || authLoading || isLoading) {
     return (
       <div className="vault-app-shell flex items-center justify-center min-h-screen">
@@ -73,13 +101,6 @@ export default function ItemPage() {
 
   if (!user || !item) {
     return null;
-  }
-
-  let defaultCustomData: Record<string, string> = {};
-  try {
-    defaultCustomData = JSON.parse(item.customData || "{}");
-  } catch {
-    defaultCustomData = {};
   }
 
   const handleSubmit = async (values: ItemFormInput, photos: UploadablePhoto[]) => {
@@ -154,7 +175,20 @@ export default function ItemPage() {
           onAddCustomField={async (fieldName, fieldType) => {
             try {
               setError("");
-              await addCustomField({ fieldName, fieldType });
+              const normalizedFieldName = fieldName.trim();
+              if (
+                customFields.some(
+                  (field) =>
+                    field.fieldName.toLowerCase() === normalizedFieldName.toLowerCase()
+                )
+              ) {
+                throw new Error("Esse campo já existe neste item");
+              }
+
+              setCustomFields((currentFields) => [
+                ...currentFields,
+                createLocalCustomField(normalizedFieldName, fieldType),
+              ]);
             } catch (submitError: unknown) {
               const message = getErrorMessage(submitError, "Erro ao criar campo");
               setError(message);
@@ -164,7 +198,9 @@ export default function ItemPage() {
           onRemoveCustomField={async (fieldId, fieldName) => {
             try {
               setError("");
-              await removeCustomField(fieldId);
+              setCustomFields((currentFields) =>
+                currentFields.filter((field) => field.id !== fieldId)
+              );
             } catch (submitError: unknown) {
               const message = getErrorMessage(
                 submitError,

@@ -1,14 +1,18 @@
 "use client";
 
+import { useId, useRef, useState } from "react";
 import Image from "next/image";
 import { getPhotoSrc } from "@/lib/photo-helper";
 import {
+  cropImageFile,
+  ImageCropConfig,
   MAX_ITEM_PHOTO_COUNT,
   MAX_ITEM_PHOTO_BYTES,
   UploadablePhoto,
   optimizeImageFile,
   validatePhotoFile,
 } from "@/lib/photo-upload";
+import { ImageCropModal } from "@/app/components/ui/image-crop-modal";
 
 interface PhotoUploadProps {
   photos: UploadablePhoto[];
@@ -28,13 +32,48 @@ export function PhotoUpload({
   onPreview,
 }: PhotoUploadProps) {
   const maxPhotoSizeInMb = Math.floor(MAX_ITEM_PHOTO_BYTES / (1024 * 1024));
+  const galleryInputId = useId();
+  const cameraInputId = useId();
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const cropResolverRef = useRef<((file: File | null) => void) | null>(null);
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
+  const [fileBeingEdited, setFileBeingEdited] = useState<File | null>(null);
 
-  const handlePhotoChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = Array.from(event.target.files ?? []);
-    event.target.value = "";
+  const requestImageCrop = async (file: File): Promise<File | null> => {
+    if (file.type === "image/gif") {
+      return file;
+    }
 
+    setFileBeingEdited(file);
+
+    return await new Promise<File | null>((resolve) => {
+      cropResolverRef.current = resolve;
+    });
+  };
+
+  const closeCropModal = (nextFile: File | null) => {
+    cropResolverRef.current?.(nextFile);
+    cropResolverRef.current = null;
+    setFileBeingEdited(null);
+  };
+
+  const handleCropConfirm = async (config: ImageCropConfig) => {
+    if (!fileBeingEdited) {
+      closeCropModal(null);
+      return;
+    }
+
+    try {
+      const croppedFile = await cropImageFile(fileBeingEdited, config);
+      closeCropModal(croppedFile);
+    } catch {
+      onError("Nao foi possivel recortar a imagem selecionada.");
+      closeCropModal(fileBeingEdited);
+    }
+  };
+
+  const processSelectedFiles = async (files: File[]) => {
     if (files.length === 0) {
       return;
     }
@@ -52,24 +91,53 @@ export function PhotoUpload({
 
     const nextPhotos: UploadablePhoto[] = [];
 
-    for (const file of selectedFiles) {
-      const validationError = validatePhotoFile(file);
-      if (validationError) {
-        onError(validationError);
-        continue;
-      }
+    setIsProcessingFiles(true);
 
-      const optimizedFile = await optimizeImageFile(file);
-      nextPhotos.push({
-        file: optimizedFile,
-        mimeType: optimizedFile.type,
-      });
+    try {
+      for (const file of selectedFiles) {
+        const validationError = validatePhotoFile(file);
+        if (validationError) {
+          onError(validationError);
+          continue;
+        }
+
+        const croppedFile = await requestImageCrop(file);
+        if (!croppedFile) {
+          continue;
+        }
+
+        let optimizedFile = croppedFile;
+        try {
+          optimizedFile = await optimizeImageFile(croppedFile);
+        } catch {
+          onError("Nao foi possivel otimizar a imagem. Vamos usar a versao ajustada.");
+        }
+
+        nextPhotos.push({
+          file: optimizedFile,
+          mimeType: optimizedFile.type,
+        });
+      }
+    } finally {
+      setIsProcessingFiles(false);
     }
 
     if (nextPhotos.length > 0) {
       onChange([...photos, ...nextPhotos]);
     }
   };
+
+  const handlePhotoChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    await processSelectedFiles(files);
+  };
+
+  const isBusy = disabled || isProcessingFiles;
+  const isAtLimit = photos.length >= MAX_ITEM_PHOTO_COUNT;
+  const disablePickers = isBusy || isAtLimit;
 
   return (
     <section className="vault-app-panel rounded-[1.75rem] p-4 sm:p-6">
@@ -126,28 +194,93 @@ export function PhotoUpload({
         {photos.length < MAX_ITEM_PHOTO_COUNT && (
           <div className="rounded-[1.5rem] border-2 border-dashed border-indigo-400/18 bg-white/[0.03] p-6">
             <input
+              ref={galleryInputRef}
               type="file"
-              id="photos"
+              id={galleryInputId}
               multiple
               accept="image/jpeg,image/png,image/webp,image/gif"
               onChange={(event) => void handlePhotoChange(event)}
-              disabled={disabled}
+              disabled={disablePickers}
               className="hidden"
             />
-            <label htmlFor="photos" className="block cursor-pointer text-center">
-              <div className="text-slate-300">
-                <p className="text-sm font-medium">Toque para adicionar imagens</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {photos.length}/{MAX_ITEM_PHOTO_COUNT} fotos selecionadas
+            <input
+              ref={cameraInputRef}
+              type="file"
+              id={cameraInputId}
+              accept="image/*"
+              capture="environment"
+              onChange={(event) => void handlePhotoChange(event)}
+              disabled={disablePickers}
+              className="hidden"
+            />
+
+            <div className="space-y-4">
+              <div className="text-center text-slate-300">
+                <p className="text-sm font-medium sm:text-base">
+                  Adicione fotos da galeria ou capture uma imagem na hora
                 </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  JPEG, PNG, WEBP ou GIF de até {maxPhotoSizeInMb}MB por foto
+                <p className="mt-2 text-xs leading-6 text-slate-500 sm:text-sm">
+                  No computador, selecione arquivos do dispositivo. No celular, voce pode usar a camera ou escolher imagens ja salvas.
                 </p>
               </div>
-            </label>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  disabled={disablePickers}
+                  className="flex min-h-14 items-center justify-center rounded-2xl border border-white/10 bg-[#0a0a14] px-4 text-sm font-semibold text-slate-100 transition hover:border-indigo-300/30 hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Escolher fotos
+                </button>
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  disabled={disablePickers}
+                  className="vault-button-primary flex min-h-14 items-center justify-center rounded-2xl px-4 text-sm font-semibold text-white transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Tirar foto agora
+                </button>
+              </div>
+
+              <div className="grid gap-3 text-left sm:grid-cols-2">
+                <div className="rounded-[1.25rem] border border-white/8 bg-black/20 p-4">
+                  <p className="text-sm font-semibold text-slate-100">Galeria ou PC</p>
+                  <p className="mt-1 text-xs leading-6 text-slate-500">
+                    Envie varias imagens de uma vez e aproveite a compressao automatica antes do upload.
+                  </p>
+                </div>
+                <div className="rounded-[1.25rem] border border-white/8 bg-black/20 p-4">
+                  <p className="text-sm font-semibold text-slate-100">Captura rapida</p>
+                  <p className="mt-1 text-xs leading-6 text-slate-500">
+                    Ideal no celular para fotografar o item na hora e seguir preenchendo o cadastro.
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-center text-xs text-slate-500">
+                {isProcessingFiles
+                  ? "Processando imagem..."
+                  : `${photos.length}/${MAX_ITEM_PHOTO_COUNT} fotos selecionadas. JPEG, PNG, WEBP ou GIF de ate ${maxPhotoSizeInMb}MB por foto.`}
+              </div>
+            </div>
           </div>
         )}
       </div>
+
+      <ImageCropModal
+        key={
+          fileBeingEdited
+            ? `${fileBeingEdited.name}-${fileBeingEdited.lastModified}`
+            : "image-crop-modal"
+        }
+        file={fileBeingEdited}
+        isOpen={Boolean(fileBeingEdited)}
+        onClose={() => closeCropModal(fileBeingEdited)}
+        onCancel={() => closeCropModal(null)}
+        onSkip={() => closeCropModal(fileBeingEdited)}
+        onConfirm={(config) => void handleCropConfirm(config)}
+      />
     </section>
   );
 }
