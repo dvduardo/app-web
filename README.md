@@ -73,6 +73,7 @@ Copie [`.env.example`](/Users/david/Documents/projetos/app-web/.env.example) par
 
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/app_web?schema=public"
+DIRECT_URL="postgresql://USER:PASSWORD@HOST:5432/app_web?schema=public"
 JWT_SECRET="troque-esta-chave-em-producao"
 ALLOW_INSECURE_COOKIES="false"
 CORS_ALLOWED_ORIGINS="http://localhost:3001"
@@ -82,17 +83,76 @@ LOG_LEVEL="debug"
 Observações:
 
 - o projeto agora está preparado para PostgreSQL, que é compatível com deploy na Vercel
+- `DIRECT_URL` pode usar o mesmo valor de `DATABASE_URL` em ambiente local
 - em ambiente local, `ALLOW_INSECURE_COOKIES="true"` pode ser útil se você estiver testando sem HTTPS
 - `CORS_ALLOWED_ORIGINS` só é necessário se houver outro frontend consumindo a API
 
-### Banco e seed
+### Rodando Localmente com PostgreSQL
+
+O projeto está configurado para desenvolvimento local com PostgreSQL via Docker Compose.
+
+#### 1. Configure o `.env.local`
+
+Use este setup local padrão:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/app_web?schema=public"
+DIRECT_URL="postgresql://postgres:postgres@127.0.0.1:5432/app_web?schema=public"
+JWT_SECRET="troque-esta-chave-em-producao"
+ALLOW_INSECURE_COOKIES="true"
+```
+
+#### 2. Suba o banco local
+
+```bash
+npm run db:up
+```
+
+O container sobe um PostgreSQL local com:
+
+- banco: `app_web`
+- usuário: `postgres`
+- senha: `postgres`
+- porta: `5432`
+
+#### 3. Aplique as migrations
 
 ```bash
 npx prisma migrate dev
+```
+
+Se quiser apenas conferir o status do banco ou acompanhar logs:
+
+```bash
+npm run db:logs
+```
+
+#### 4. Rode o seed
+
+```bash
 npm run seed
 ```
 
 O seed cria um usuário de teste:
+
+- Email: `teste@example.com`
+- Senha: `Teste123!`
+
+#### 5. Suba a aplicação
+
+```bash
+npm run dev
+```
+
+Abra:
+
+- `http://localhost:3000/` para a landing page
+- `http://localhost:3000/auth/login` para login
+- `http://localhost:3000/dashboard` para a área autenticada
+
+#### 6. Login local de desenvolvimento
+
+Credenciais prontas após o seed:
 
 - Email: `teste@example.com`
 - Senha: `Teste123!`
@@ -115,6 +175,10 @@ Abra:
 npm run dev              # ambiente de desenvolvimento
 npm run build            # build de produção
 npm start                # inicia o servidor via server/scripts/start.mjs
+npm run db:up            # sobe o PostgreSQL local com Docker Compose
+npm run db:down          # derruba o PostgreSQL local
+npm run db:logs          # acompanha logs do PostgreSQL local
+npm run db:migrate       # roda migrations locais com Prisma
 npm run seed             # cria usuário de teste
 npm run lint             # lint com ESLint
 npm run test             # testes unitários/integration com Vitest

@@ -76,6 +76,21 @@ describe('getErrorMessage', () => {
     )
   })
 
+  it('should translate payload too large responses', () => {
+    const axiosError = new axios.AxiosError('Request failed with status code 413')
+    axiosError.response = {
+      data: 'FUNCTION_PAYLOAD_TOO_LARGE',
+      status: 413,
+      statusText: 'Payload Too Large',
+      headers: {},
+      config: {} as any,
+    }
+
+    expect(getErrorMessage(axiosError, 'Fallback message')).toBe(
+      'A foto é grande demais para upload. Use uma imagem de até 4MB.'
+    )
+  })
+
   it('should translate known generic error messages', () => {
     expect(getErrorMessage(new Error('internal server error'), 'Fallback message')).toBe(
       'Erro interno do servidor. Tente novamente.'
