@@ -4,15 +4,12 @@ import { useId, useRef, useState } from "react";
 import Image from "next/image";
 import { getPhotoSrc } from "@/lib/photo-helper";
 import {
-  cropImageFile,
-  ImageCropConfig,
   MAX_ITEM_PHOTO_COUNT,
   MAX_ITEM_PHOTO_BYTES,
   UploadablePhoto,
   optimizeImageFile,
   validatePhotoFile,
 } from "@/lib/photo-upload";
-import { ImageCropModal } from "@/app/components/ui/image-crop-modal";
 
 interface PhotoUploadProps {
   photos: UploadablePhoto[];
@@ -36,42 +33,7 @@ export function PhotoUpload({
   const cameraInputId = useId();
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
-  const cropResolverRef = useRef<((file: File | null) => void) | null>(null);
   const [isProcessingFiles, setIsProcessingFiles] = useState(false);
-  const [fileBeingEdited, setFileBeingEdited] = useState<File | null>(null);
-
-  const requestImageCrop = async (file: File): Promise<File | null> => {
-    if (file.type === "image/gif") {
-      return file;
-    }
-
-    setFileBeingEdited(file);
-
-    return await new Promise<File | null>((resolve) => {
-      cropResolverRef.current = resolve;
-    });
-  };
-
-  const closeCropModal = (nextFile: File | null) => {
-    cropResolverRef.current?.(nextFile);
-    cropResolverRef.current = null;
-    setFileBeingEdited(null);
-  };
-
-  const handleCropConfirm = async (config: ImageCropConfig) => {
-    if (!fileBeingEdited) {
-      closeCropModal(null);
-      return;
-    }
-
-    try {
-      const croppedFile = await cropImageFile(fileBeingEdited, config);
-      closeCropModal(croppedFile);
-    } catch {
-      onError("Nao foi possivel recortar a imagem selecionada.");
-      closeCropModal(fileBeingEdited);
-    }
-  };
 
   const processSelectedFiles = async (files: File[]) => {
     if (files.length === 0) {
@@ -101,16 +63,11 @@ export function PhotoUpload({
           continue;
         }
 
-        const croppedFile = await requestImageCrop(file);
-        if (!croppedFile) {
-          continue;
-        }
-
-        let optimizedFile = croppedFile;
+        let optimizedFile = file;
         try {
-          optimizedFile = await optimizeImageFile(croppedFile);
+          optimizedFile = await optimizeImageFile(file);
         } catch {
-          onError("Nao foi possivel otimizar a imagem. Vamos usar a versao ajustada.");
+          onError("Nao foi possivel otimizar a imagem. Vamos usar a original.");
         }
 
         nextPhotos.push({
@@ -220,14 +177,19 @@ export function PhotoUpload({
                   Adicione fotos da galeria ou capture uma imagem na hora
                 </p>
                 <p className="mt-2 text-xs leading-6 text-slate-500 sm:text-sm">
-                  No computador, selecione arquivos do dispositivo. No celular, voce pode usar a camera ou escolher imagens ja salvas.
+                  No computador, selecione arquivos do dispositivo. No celular, voce pode usar a camera ou escolher imagens ja salvas. Assim que voce confirmar a foto, ela entra direto no card.
                 </p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <button
                   type="button"
-                  onClick={() => galleryInputRef.current?.click()}
+                  onClick={() => {
+                    if (galleryInputRef.current) {
+                      galleryInputRef.current.value = "";
+                      galleryInputRef.current.click();
+                    }
+                  }}
                   disabled={disablePickers}
                   className="flex min-h-14 items-center justify-center rounded-2xl border border-white/10 bg-[#0a0a14] px-4 text-sm font-semibold text-slate-100 transition hover:border-indigo-300/30 hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-60"
                 >
@@ -235,7 +197,12 @@ export function PhotoUpload({
                 </button>
                 <button
                   type="button"
-                  onClick={() => cameraInputRef.current?.click()}
+                  onClick={() => {
+                    if (cameraInputRef.current) {
+                      cameraInputRef.current.value = "";
+                      cameraInputRef.current.click();
+                    }
+                  }}
                   disabled={disablePickers}
                   className="vault-button-primary flex min-h-14 items-center justify-center rounded-2xl px-4 text-sm font-semibold text-white transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
                 >
@@ -267,20 +234,6 @@ export function PhotoUpload({
           </div>
         )}
       </div>
-
-      <ImageCropModal
-        key={
-          fileBeingEdited
-            ? `${fileBeingEdited.name}-${fileBeingEdited.lastModified}`
-            : "image-crop-modal"
-        }
-        file={fileBeingEdited}
-        isOpen={Boolean(fileBeingEdited)}
-        onClose={() => closeCropModal(fileBeingEdited)}
-        onCancel={() => closeCropModal(null)}
-        onSkip={() => closeCropModal(fileBeingEdited)}
-        onConfirm={(config) => void handleCropConfirm(config)}
-      />
     </section>
   );
 }
