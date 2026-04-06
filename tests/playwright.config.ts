@@ -29,7 +29,10 @@ export default defineConfig({
     timeout: 120 * 1000,
     env: {
       JWT_SECRET: process.env.JWT_SECRET ?? 'e2e-test-jwt-secret',
-      DATABASE_URL: process.env.DATABASE_URL ?? 'file:./e2e.db',
+      DATABASE_URL:
+        process.env.E2E_DATABASE_URL ??
+        process.env.DATABASE_URL ??
+        'postgresql://postgres:postgres@127.0.0.1:5432/app_web_e2e?schema=public',
     },
   },
 });

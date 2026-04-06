@@ -8,9 +8,24 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: app_web_e2e
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     env:
       JWT_SECRET: e2e-test-jwt-secret-for-ci
-      DATABASE_URL: file:./dev.db
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app_web_e2e
 
     steps:
       - uses: actions/checkout@v4
