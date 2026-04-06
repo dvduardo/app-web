@@ -138,6 +138,11 @@ O seed cria um usuário de teste:
 - Email: `teste@example.com`
 - Senha: `Teste123!`
 
+Observação:
+
+- o `seed` agora só executa quando `DATABASE_URL` ou `DIRECT_URL` apontam para banco local (`localhost`, `127.0.0.1` ou `postgres`)
+- se alguém tentar rodar o comando com banco remoto, o script falha de propósito para proteger produção
+
 #### 5. Suba a aplicação
 
 ```bash
@@ -195,7 +200,7 @@ O projeto já está configurado para deploy com Prisma + Vercel:
 
 - o Prisma foi preparado para `postgresql`
 - existe migration inicial em `prisma/migrations/`
-- [`vercel.json`](/Users/david/Documents/projetos/app-web/vercel.json) roda `prisma migrate deploy` antes do build
+- [`vercel.json`](/Users/david/Documents/projetos/app-web/vercel.json) executa `npm run build`
 - `npm run build` já executa `prisma generate && next build`
 
 Para subir:
@@ -203,7 +208,7 @@ Para subir:
 1. Crie um banco PostgreSQL gerenciado, como Neon, Supabase ou Vercel Postgres.
 2. Configure na Vercel as env vars `DATABASE_URL`, `JWT_SECRET`, `ALLOW_INSECURE_COOKIES` e, se necessário, `CORS_ALLOWED_ORIGINS`.
 3. Faça o deploy do projeto normalmente na Vercel.
-4. Rode o seed manualmente em um ambiente conectado ao mesmo banco, se quiser popular um usuário inicial.
+4. Se quiser popular um usuário inicial em produção, prefira um script separado e controlado; o `npm run seed` deste projeto é bloqueado para banco remoto.
 
 Observação:
 

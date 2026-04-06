@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const testEmail = "teste@example.com";
 const testPassword = "Teste123!";
 const testName = "Usuário de Teste";
+const localDatabaseHosts = new Set(["localhost", "127.0.0.1", "postgres"]);
 
 const sampleCategories = [
   "Livros",
@@ -144,8 +145,39 @@ const sampleItems = [
   },
 ];
 
+function getDatabaseHost(connectionString) {
+  if (!connectionString) {
+    return null;
+  }
+
+  try {
+    return new URL(connectionString).hostname;
+  } catch {
+    return null;
+  }
+}
+
+function assertLocalSeedEnvironment() {
+  const databaseHost = getDatabaseHost(process.env.DATABASE_URL);
+  const directDatabaseHost = getDatabaseHost(process.env.DIRECT_URL);
+  const allowedHosts = [databaseHost, directDatabaseHost].filter(Boolean);
+  const isLocalDatabase = allowedHosts.some((host) => localDatabaseHosts.has(host));
+
+  if (isLocalDatabase) {
+    return;
+  }
+
+  console.error("❌ Seed bloqueado: este script so pode rodar com banco local.");
+  console.error("   Hosts permitidos:", Array.from(localDatabaseHosts).join(", "));
+  console.error("   DATABASE_URL host:", databaseHost ?? "nao definido");
+  console.error("   DIRECT_URL host:", directDatabaseHost ?? "nao definido");
+  process.exit(1);
+}
+
 async function seed() {
   try {
+    assertLocalSeedEnvironment();
+
     const hashedPassword = await bcrypt.hash(testPassword, 10);
 
     const user = await prisma.user.upsert({
