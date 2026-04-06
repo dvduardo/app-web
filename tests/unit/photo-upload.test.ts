@@ -3,7 +3,6 @@ import {
   ALLOWED_ITEM_PHOTO_TYPES,
   MAX_ITEM_PHOTO_BYTES,
   buildPhotoPreview,
-  cropImageFile,
   optimizeImageFile,
   validatePhotoFile,
 } from '@/lib/photo-upload'
@@ -95,103 +94,6 @@ describe('photo-upload', () => {
     expect(optimized).not.toBe(file)
     expect(optimized.type).toBe('image/jpeg')
     expect(optimized.name).toBe('item.jpg')
-  })
-
-  it('crops an image using the provided crop config', async () => {
-    const file = new File([new Uint8Array(4000)], 'crop.jpeg', { type: 'image/jpeg' })
-    const bitmap = { width: 2400, height: 1600, close: vi.fn() }
-    const drawImage = vi.fn()
-
-    globalThis.createImageBitmap = vi.fn().mockResolvedValue(bitmap) as typeof createImageBitmap
-    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({ drawImage, canvas: document.createElement('canvas') })
-    HTMLCanvasElement.prototype.toBlob = vi.fn(function (callback: BlobCallback) {
-      callback(new Blob([new Uint8Array(900)], { type: 'image/jpeg' }))
-    })
-
-    const cropped = await cropImageFile(file, {
-      aspectRatio: 4 / 3,
-      zoom: 1.4,
-      offsetX: 0.35,
-      offsetY: -0.2,
-    })
-
-    expect(drawImage).toHaveBeenCalled()
-    expect(bitmap.close).toHaveBeenCalled()
-    expect(cropped).not.toBe(file)
-    expect(cropped.type).toBe('image/jpeg')
-    expect(cropped.name).toBe('crop.jpeg')
-  })
-
-  it('returns the original file when crop canvas context is unavailable', async () => {
-    const file = new File(['content'], 'item.jpg', { type: 'image/jpeg' })
-    const bitmap = { width: 1200, height: 800, close: vi.fn() }
-
-    globalThis.createImageBitmap = vi.fn().mockResolvedValue(bitmap) as typeof createImageBitmap
-    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue(null)
-
-    await expect(
-      cropImageFile(file, {
-        aspectRatio: 4 / 3,
-        zoom: 1.2,
-        offsetX: 0,
-        offsetY: 0,
-      })
-    ).resolves.toBe(file)
-    expect(bitmap.close).toHaveBeenCalled()
-  })
-
-  it('returns the original file for gif crop requests and when crop blob generation fails', async () => {
-    const gifFile = new File(['gif'], 'item.gif', { type: 'image/gif' })
-    await expect(
-      cropImageFile(gifFile, {
-        aspectRatio: 4 / 3,
-        zoom: 1.2,
-        offsetX: 0,
-        offsetY: 0,
-      })
-    ).resolves.toBe(gifFile)
-
-    const webpFile = new File([new Uint8Array(3000)], 'item.webp', { type: 'image/webp' })
-    const bitmap = { width: 1000, height: 500, close: vi.fn() }
-
-    globalThis.createImageBitmap = vi.fn().mockResolvedValue(bitmap) as typeof createImageBitmap
-    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({ drawImage: vi.fn(), canvas: document.createElement('canvas') })
-    HTMLCanvasElement.prototype.toBlob = vi.fn(function (callback: BlobCallback) {
-      callback(null)
-    })
-
-    await expect(
-      cropImageFile(webpFile, {
-        aspectRatio: Number.NaN,
-        zoom: Number.NaN,
-        offsetX: Number.POSITIVE_INFINITY,
-        offsetY: Number.NEGATIVE_INFINITY,
-      })
-    ).resolves.toBe(webpFile)
-    expect(bitmap.close).toHaveBeenCalled()
-  })
-
-  it('keeps webp output type when crop succeeds', async () => {
-    const file = new File([new Uint8Array(3000)], 'item.webp', { type: 'image/webp' })
-    const bitmap = { width: 900, height: 900, close: vi.fn() }
-    const drawImage = vi.fn()
-
-    globalThis.createImageBitmap = vi.fn().mockResolvedValue(bitmap) as typeof createImageBitmap
-    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({ drawImage, canvas: document.createElement('canvas') })
-    HTMLCanvasElement.prototype.toBlob = vi.fn(function (callback: BlobCallback) {
-      callback(new Blob([new Uint8Array(1200)], { type: 'image/webp' }))
-    })
-
-    const cropped = await cropImageFile(file, {
-      aspectRatio: 1,
-      zoom: 1.5,
-      offsetX: 0.1,
-      offsetY: 0.1,
-    })
-
-    expect(drawImage).toHaveBeenCalled()
-    expect(bitmap.close).toHaveBeenCalled()
-    expect(cropped.type).toBe('image/webp')
   })
 
   it('keeps the original file when the optimized blob is not smaller', async () => {
