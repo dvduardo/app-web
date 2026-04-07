@@ -13,15 +13,21 @@ Hoje o projeto está organizado em três frentes principais:
 ## Principais recursos
 
 - Autenticação com JWT em cookie HTTP-only e senha com `bcryptjs`
+- **OAuth integrado**: Google, GitHub e Discord (auto-cria usuário, gerencia tokens)
 - Cadastro e login com validação via `zod` + `react-hook-form`
-- Dashboard com busca, paginação, filtros por categoria e status
+- Dashboard com busca em tempo real (título + descrição), paginação (12 itens/página, máx 50), filtros por categoria e status
 - Alternância entre visualização em grade e lista
 - Destaque de favoritos e status como `owned`, `wishlist` e `loaned`
+- Estatísticas de coleção (total, favoritos, wishlist, próprios, emprestados)
 - CRUD de itens com descrição, categoria e campos customizáveis
-- Upload de múltiplas fotos por item com ordenação e galeria
+- Upload de múltiplas fotos por item (máx 2) com auto-otimização (redimensiona 1600px max, JPEG 0.82)
+- Ordenação e galeria de fotos
 - Categorias por usuário, com criação direta pelo formulário
+- Soft delete em itens (não destrutivo, marca `deletedAt`)
+- React Query com cache inteligente (stale time 30s)
 - Notificações com `react-hot-toast`
-- Cobertura de testes unitários com Vitest e fluxos E2E com Playwright
+- Cobertura de testes: **97.81%** (135 testes passando)
+- Testes unitários com Vitest e E2E com Playwright
 
 ## Stack
 
@@ -218,11 +224,12 @@ Observação:
 
 Rotas implementadas hoje:
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
-- `GET /api/categories`
+- `POST /api/auth/register` — Login com credenciais
+- `POST /api/auth/login` — Cadastro de novo usuário
+- `POST /api/auth/logout` — Logout
+- `GET /api/auth/me` — Verifica autenticação atual
+- `GET/POST /api/auth/[...nextauth]` — **OAuth** (Google, GitHub, Discord)
+- `GET /api/categories` — Lista categorias
 - `POST /api/categories`
 - `GET /api/custom-fields`
 - `POST /api/custom-fields`
@@ -237,33 +244,69 @@ Rotas implementadas hoje:
 
 ## Modelagem
 
-O banco hoje gira em torno de cinco entidades:
+O banco gira em torno de **6 entidades**:
 
-- `User`
-- `Item`
-- `Category`
-- `CustomField`
-- `Photo`
+- `User` — Usuário com autenticação JWT e OAuth
+- `Item` — Item da coleção (com soft delete via `deletedAt`)
+- `Category` — Categorias por usuário
+- `CustomField` — Campos dinâmicos por usuário
+- `Photo` — Fotos do item (máx 2, com ordem e auto-otimização)
+- `OAuthAccount` — Contas OAuth (Google, GitHub, Discord)
 
-Cada usuário possui suas próprias categorias, campos customizáveis e itens. Cada item pode ter status, favorito, dados extras serializados e várias fotos ordenadas.
+Cada usuário possui suas próprias categorias, campos customizáveis e itens. Cada item pode ter status, favorito, dados extras serializados e várias fotos ordenadas. Items com `deletedAt` preenchido são tratados como deletados sem perder dados.
 
 ## Testes
 
-Cobertura atual inclui:
+**Cobertura:** 97.81% statements/lines, 94.62% branches, 94% functions — **135 testes passando**
 
-- testes de autenticação, schemas, utilitários e regras de negócio
-- testes de CORS, upload de foto e helpers de API
-- testes E2E para autenticação, dashboard e itens
+Testes incluem:
 
-Para os testes E2E locais, você pode usar `E2E_DATABASE_URL` para apontar para um banco PostgreSQL separado.
+- Autenticação (JWT, OAuth, credentials)
+- Schemas de validação e regras de negócio
+- CORS, upload de foto e helpers de API
+- E2E para autenticação, dashboard e itens
+
+Para testes E2E locais, use `E2E_DATABASE_URL` para apontar banco PostgreSQL separado.
 
 Arquivos de referência:
 
 - [`tests/unit/auth.test.ts`](/Users/david/Documents/projetos/app-web/tests/unit/auth.test.ts)
+- [`tests/unit/auth-options.test.ts`](/Users/david/Documents/projetos/app-web/tests/unit/auth-options.test.ts) — OAuth e NextAuth
+- [`tests/unit/get-authenticated-user.test.ts`](/Users/david/Documents/projetos/app-web/tests/unit/get-authenticated-user.test.ts) — Autenticação
 - [`tests/unit/item-schema.test.ts`](/Users/david/Documents/projetos/app-web/tests/unit/item-schema.test.ts)
 - [`tests/e2e/auth.spec.ts`](/Users/david/Documents/projetos/app-web/tests/e2e/auth.spec.ts)
 - [`tests/e2e/dashboard.spec.ts`](/Users/david/Documents/projetos/app-web/tests/e2e/dashboard.spec.ts)
 - [`tests/e2e/items.spec.ts`](/Users/david/Documents/projetos/app-web/tests/e2e/items.spec.ts)
+
+## Detalhes Técnicos
+
+### Dados & Caching
+
+- **React Query**: Stale time 30s para revalidação automática
+- **Paginação**: Padrão 12 itens/página, máximo 50
+- **Busca**: Busca em tempo real (título + descrição)
+- **Soft Delete**: Items marcados com `deletedAt` não são retornados por padrão
+
+### Upload de Fotos
+
+- **Limite**: 2 fotos por item
+- **Tamanho**: Máx 4MB (limite Vercel)
+- **Formatos**: JPEG, PNG, WEBP, GIF
+- **Auto-otimização**: Redimensiona para 1600px máximo, converte para JPEG com qualidade 0.82
+- **Armazenamento**: Base64 no banco (otimizado para Vercel)
+
+### Observabilidade
+
+- **Pino Logger**: Logs estruturados no servidor (LOG_LEVEL configurável)
+- **Erros**: Validação Zod com mensagens claras
+- **Request Logging**: Middleware com timestamp e duração
+
+### OAuth
+
+- **Providers**: Google, GitHub, Discord
+- **Auto-criação**: Novo usuário criado automaticamente no primeiro login
+- **Atualização**: Tokens refresh automático
+- **Fallback**: Suporta transição entre OAuth e credenciais
 
 ## Convenções do projeto
 
@@ -271,5 +314,6 @@ Arquivos de referência:
 - App Router e separação clara entre código de `app/`, `hooks/`, `lib/` e `server/`
 - Preferência por reutilizar padrões já existentes antes de criar novos arquivos
 - Mudanças novas devem vir acompanhadas de testes quando fizer sentido
+- Cobertura mínima de testes: 90%
 
 As diretrizes detalhadas para agentes e automações estão em [`.github/copilot-instructions.md`](/Users/david/Documents/projetos/app-web/.github/copilot-instructions.md).
