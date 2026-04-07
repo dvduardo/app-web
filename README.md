@@ -29,6 +29,32 @@ Hoje o projeto está organizado em três frentes principais:
 - Cobertura de testes: **97.81%** (135 testes passando)
 - Testes unitários com Vitest e E2E com Playwright
 
+## 📸 Screenshots
+
+### Login
+
+| Desktop | Mobile |
+|---------|--------|
+| ![Login Desktop](img/login-desktop.png) | ![Login Mobile](img/login-mobile.png) |
+
+### Registro
+
+| Desktop | Mobile |
+|---------|--------|
+| ![Registro Desktop](img/register-desktop.png) | ![Registro Mobile](img/register-mobile.png) |
+
+### Dashboard
+
+| Desktop | Mobile |
+|---------|--------|
+| ![Dashboard Desktop](img/dashboard-desktop.png) | ![Dashboard Mobile](img/dashboard-mobile.png) |
+
+### Criar Novo Item
+
+| Desktop | Mobile |
+|---------|--------|
+| ![Novo Item Desktop](img/new-item-desktop.png) | ![Novo Item Mobile](img/new-item-mobile.png) |
+
 ## Stack
 
 | Camada | Tecnologias |
