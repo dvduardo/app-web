@@ -1,5 +1,4 @@
 import type { NextAuthOptions } from "next-auth";
-import type { OAuthConfig } from "next-auth/providers";
 import DiscordProvider from "next-auth/providers/discord";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
@@ -24,11 +23,10 @@ function getNameFromEmail(email: string): string {
     .join(" ");
 }
 
-function buildProvider(
+function getProviderCredentials(
   clientIdName: string,
   clientSecretName: string,
-  providerFactory: (options: { clientId: string; clientSecret: string }) => OAuthConfig<unknown>,
-): OAuthConfig<unknown> | null {
+): { clientId: string; clientSecret: string } | null {
   const clientId = getOptionalEnv(clientIdName);
   const clientSecret = getOptionalEnv(clientSecretName);
 
@@ -36,14 +34,25 @@ function buildProvider(
     return null;
   }
 
-  return providerFactory({ clientId, clientSecret });
+  return { clientId, clientSecret };
 }
 
-const providers = [
-  buildProvider("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", GoogleProvider),
-  buildProvider("GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", GitHubProvider),
-  buildProvider("DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", DiscordProvider),
-].filter((provider): provider is OAuthConfig<unknown> => provider !== null);
+const providers: NextAuthOptions["providers"] = [];
+
+const googleCredentials = getProviderCredentials("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET");
+if (googleCredentials) {
+  providers.push(GoogleProvider(googleCredentials));
+}
+
+const githubCredentials = getProviderCredentials("GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET");
+if (githubCredentials) {
+  providers.push(GitHubProvider(githubCredentials));
+}
+
+const discordCredentials = getProviderCredentials("DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET");
+if (discordCredentials) {
+  providers.push(DiscordProvider(discordCredentials));
+}
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
