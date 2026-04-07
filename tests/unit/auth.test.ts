@@ -223,5 +223,52 @@ describe('auth', () => {
       process.env.NODE_ENV = previousNodeEnv
       process.env.JWT_SECRET = previousSecret
     })
+
+    it('should use test secret in test environment', async () => {
+      const previousNodeEnv = process.env.NODE_ENV
+      const previousSecret = process.env.JWT_SECRET
+
+      process.env.NODE_ENV = 'test'
+      delete process.env.JWT_SECRET
+
+      const { generateToken, verifyToken } = await import('@/server/auth/jwt')
+      const token = generateToken({ userId: 'user-1', email: 'user@example.com' })
+      const result = verifyToken(token)
+
+      expect(result).not.toBeNull()
+      expect(result?.userId).toBe('user-1')
+
+      process.env.NODE_ENV = previousNodeEnv
+      process.env.JWT_SECRET = previousSecret
+    })
+
+    it('should use configured JWT_SECRET when available', async () => {
+      const previousSecret = process.env.JWT_SECRET
+      const customSecret = 'my-custom-secret-key-123'
+      process.env.JWT_SECRET = customSecret
+
+      const { generateToken, verifyToken } = await import('@/server/auth/jwt')
+      const token = generateToken({ userId: 'user-1', email: 'user@example.com' })
+      const result = verifyToken(token)
+
+      expect(result).not.toBeNull()
+      expect(result?.userId).toBe('user-1')
+
+      process.env.JWT_SECRET = previousSecret
+    })
+
+    it('should trim whitespace from JWT_SECRET', async () => {
+      const previousSecret = process.env.JWT_SECRET
+      process.env.JWT_SECRET = '  test-jwt-secret-with-spaces  '
+
+      const { generateToken, verifyToken } = await import('@/server/auth/jwt')
+      const token = generateToken({ userId: 'user-1', email: 'user@example.com' })
+      const result = verifyToken(token)
+
+      expect(result).not.toBeNull()
+      expect(result?.userId).toBe('user-1')
+
+      process.env.JWT_SECRET = previousSecret
+    })
   })
 })

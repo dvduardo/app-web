@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 export interface JWTPayload {
   userId: string;
   email: string;
+  name?: string;
 }
 
 export function generateToken(payload: JWTPayload): string {

@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, type JWTPayload } from "@/server/auth/jwt";
+import {
+  getAuthenticatedUser,
+  type AuthenticatedUser,
+} from "@/server/auth/get-authenticated-user";
 
 export async function requireUser(): Promise<
-  { user: JWTPayload; response: null } | { user: null; response: NextResponse }
+  { user: AuthenticatedUser; response: null } | { user: null; response: NextResponse }
 > {
-  const user = await getCurrentUser();
+  const user = await getAuthenticatedUser();
 
   if (!user) {
     return {

@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
+import { getProviders } from "next-auth/react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -20,17 +21,19 @@ import {
 } from "lucide-react";
 import { getErrorMessage } from "@/lib/get-error-message";
 import { loginSchema } from "@/lib/schemas/auth";
+import { OAuthButtons } from "@/app/components/auth/oauth-buttons";
 
 type LoginFormValues = z.input<typeof loginSchema>;
 
 const collectibleIcons: LucideIcon[] = [BookOpen, Disc3, Bot, Gamepad2];
 
 export function LoginForm() {
-  const { login } = useAuth();
+  const { login, loginWithOAuth } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeIconIndex, setActiveIconIndex] = useState(0);
   const [isIconTransitioning, setIsIconTransitioning] = useState(false);
+  const [availableProviders, setAvailableProviders] = useState<Array<"google" | "github" | "discord">>([]);
   const {
     register,
     handleSubmit,
@@ -45,11 +48,41 @@ export function LoginForm() {
 
   useEffect(() => {
     const success = searchParams.get("success");
+    const error = searchParams.get("error");
+
     if (success === "true") {
       toast.success("Cadastro realizado com sucesso! Faça login agora.");
       router.replace("/auth/login");
+      return;
+    }
+
+    if (error === "OAuthEmailMissing") {
+      toast.error("Não foi possível obter seu email no provedor social.");
+      router.replace("/auth/login");
+      return;
+    }
+
+    if (error) {
+      toast.error("Não foi possível concluir o login social. Tente novamente.");
+      router.replace("/auth/login");
     }
   }, [router, searchParams]);
+
+  useEffect(() => {
+    const loadProviders = async () => {
+      try {
+        const providers = await getProviders();
+        const enabledProviders = (["google", "github", "discord"] as const).filter(
+          (provider) => Boolean(providers?.[provider])
+        );
+        setAvailableProviders(enabledProviders);
+      } catch {
+        setAvailableProviders([]);
+      }
+    };
+
+    void loadProviders();
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -143,6 +176,19 @@ export function LoginForm() {
           onSubmit={onSubmit}
           noValidate
         >
+          <OAuthButtons
+            availableProviders={availableProviders}
+            isSubmitting={isSubmitting}
+            loginWithOAuth={loginWithOAuth}
+          />
+
+          <div className="relative py-1">
+            <div className="h-px w-full bg-white/8" />
+            <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+              <span className="bg-[#0d0d1f] px-3">ou entre com email</span>
+            </span>
+          </div>
+
           <div className="space-y-4">
             <div className="group">
               <label htmlFor="email" className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.18em] text-slate-400">

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/server/auth/jwt";
+import { getAuthenticatedUser } from "@/server/auth/get-authenticated-user";
 import { prisma } from "@/server/db/prisma";
 import { addCorsHeaders, handleCorsPreFlight } from "@/server/http/cors";
 
@@ -8,7 +8,7 @@ export async function OPTIONS(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const user = await getCurrentUser();
+  const user = await getAuthenticatedUser();
   if (!user) {
     return addCorsHeaders(
       NextResponse.json({ user: null }, { status: 200 }),

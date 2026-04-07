@@ -11,6 +11,12 @@ vi.mock('@/lib/api-client', () => ({
   },
 }))
 
+vi.mock('next-auth/react', () => ({
+  getProviders: vi.fn(async () => ({})),
+  signIn: vi.fn(),
+  signOut: vi.fn(async () => ({ url: '/auth/login' })),
+}))
+
 // Helper component to test useAuth hook
 function TestComponent() {
   const { user, isLoading, login, register, logout } = useAuth()
