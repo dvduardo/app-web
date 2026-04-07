@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
     const token = generateToken({
       userId: user.id,
       email: user.email,
+      name: user.name,
     });
 
     const response = NextResponse.json(

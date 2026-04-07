@@ -1,21 +1,25 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
+import { getProviders } from "next-auth/react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, User, BookOpen, UserPlus } from "lucide-react";
 import { getErrorMessage } from "@/lib/get-error-message";
 import { registerSchema } from "@/lib/schemas/auth";
+import { OAuthButtons } from "@/app/components/auth/oauth-buttons";
 
 type RegisterFormValues = z.input<typeof registerSchema>;
 
 export function RegisterForm() {
-  const { register } = useAuth();
+  const { register, loginWithOAuth } = useAuth();
   const router = useRouter();
+  const [availableProviders, setAvailableProviders] = useState<Array<"google" | "github" | "discord">>([]);
   const {
     register: registerField,
     handleSubmit,
@@ -40,6 +44,22 @@ export function RegisterForm() {
       toast.error(errorMsg);
     }
   });
+
+  useEffect(() => {
+    const loadProviders = async () => {
+      try {
+        const providers = await getProviders();
+        const enabledProviders = (["google", "github", "discord"] as const).filter(
+          (provider) => Boolean(providers?.[provider])
+        );
+        setAvailableProviders(enabledProviders);
+      } catch {
+        setAvailableProviders([]);
+      }
+    };
+
+    void loadProviders();
+  }, []);
 
   return (
     <div className="w-full">
@@ -74,6 +94,19 @@ export function RegisterForm() {
           onSubmit={onSubmit}
           noValidate
         >
+          <OAuthButtons
+            availableProviders={availableProviders}
+            isSubmitting={isSubmitting}
+            loginWithOAuth={loginWithOAuth}
+          />
+
+          <div className="relative py-1">
+            <div className="h-px w-full bg-white/8" />
+            <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+              <span className="bg-[#0d0d1f] px-3">ou crie com email</span>
+            </span>
+          </div>
+
           <div className="space-y-4">
             <div className="group">
               <label htmlFor="name" className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.18em] text-slate-400">

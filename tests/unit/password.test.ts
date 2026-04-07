@@ -84,5 +84,12 @@ describe('password', () => {
       const result = await verifyPassword(password, invalidHash)
       expect(result).toBe(false)
     })
+
+    it('should return false when hash is null', async () => {
+      const password = 'test-password-123'
+      const result = await verifyPassword(password, null)
+
+      expect(result).toBe(false)
+    })
   })
 })

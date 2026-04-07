@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { signIn, signOut } from "next-auth/react";
 import { apiClient } from "@/lib/api-client";
 
 interface User {
@@ -14,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   mounted: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithOAuth: (provider: "google" | "github" | "discord") => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -70,10 +72,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const loginWithOAuth = async (provider: "google" | "github" | "discord") => {
+    await signIn(provider, { callbackUrl: "/dashboard" });
+  };
+
   const logout = async () => {
     setIsLoading(true);
     try {
-      await apiClient.post("/auth/logout");
+      await Promise.allSettled([
+        apiClient.post("/auth/logout"),
+        signOut({ redirect: false }),
+      ]);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -82,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, mounted, login, register, logout }}
+      value={{ user, isLoading, mounted, login, loginWithOAuth, register, logout }}
     >
       {children}
     </AuthContext.Provider>
