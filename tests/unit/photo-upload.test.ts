@@ -115,4 +115,63 @@ describe('photo-upload', () => {
 
     expect(preview).toMatch(/^data:image\/png;base64,/)
   })
+
+  it('returns empty string when FileReader result is null', async () => {
+    const originalFileReader = globalThis.FileReader
+
+    const mockReaderInstance = {
+      result: null,
+      onload: null as ((ev: ProgressEvent) => void) | null,
+      onerror: null as ((ev: ProgressEvent) => void) | null,
+      readAsDataURL: vi.fn(function (this: typeof mockReaderInstance) {
+        this.onload?.({} as ProgressEvent)
+      }),
+    }
+
+    globalThis.FileReader = vi.fn(() => mockReaderInstance) as unknown as typeof FileReader
+
+    const file = new File(['content'], 'test.png', { type: 'image/png' })
+    const result = await buildPhotoPreview(file)
+    expect(result).toBe('')
+
+    globalThis.FileReader = originalFileReader
+  })
+
+  it('rejects when FileReader encounters an error', async () => {
+    const originalFileReader = globalThis.FileReader
+
+    const mockReaderInstance = {
+      result: null,
+      onload: null as ((ev: ProgressEvent) => void) | null,
+      onerror: null as ((ev: ProgressEvent) => void) | null,
+      readAsDataURL: vi.fn(function (this: typeof mockReaderInstance) {
+        this.onerror?.({} as ProgressEvent)
+      }),
+    }
+
+    globalThis.FileReader = vi.fn(() => mockReaderInstance) as unknown as typeof FileReader
+
+    const file = new File(['content'], 'bad.png', { type: 'image/png' })
+    await expect(buildPhotoPreview(file)).rejects.toThrow('Falha ao gerar preview da foto')
+
+    globalThis.FileReader = originalFileReader
+  })
+
+  it('returns an optimized PNG file when the generated blob is smaller', async () => {
+    const file = new File([new Uint8Array(4000)], 'photo.png', { type: 'image/png' })
+    const bitmap = { width: 2000, height: 1000, close: vi.fn() }
+    const drawImage = vi.fn()
+
+    globalThis.createImageBitmap = vi.fn().mockResolvedValue(bitmap) as typeof createImageBitmap
+    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({ drawImage })
+    HTMLCanvasElement.prototype.toBlob = vi.fn(function (callback: BlobCallback) {
+      callback(new Blob([new Uint8Array(1000)], { type: 'image/png' }))
+    })
+
+    const optimized = await optimizeImageFile(file)
+
+    expect(optimized).not.toBe(file)
+    expect(optimized.type).toBe('image/png')
+    expect(optimized.name).toBe('photo.png')
+  })
 })

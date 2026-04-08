@@ -126,4 +126,27 @@ describe('item schemas', () => {
       name: 'Games',
     })
   })
+
+  it('passthrough non-string non-null value in normalizeNullableString', () => {
+    // Passing a number as description hits the typeof !== "string" branch (lines 13-14)
+    const result = itemSchema.safeParse({
+      categoryId: 'cat-1',
+      title: 'Item',
+      description: 42,
+    })
+
+    // 42 passes through normalizeNullableString unchanged, then fails z.string().nullable()
+    expect(result.success).toBe(false)
+  })
+
+  it('normalizeNullableString returns trimmed non-empty string', () => {
+    // Pass a description with surrounding whitespace that trims to non-empty
+    const result = itemSchema.parse({
+      categoryId: 'cat-1',
+      title: 'Item',
+      description: '  A real description  ',
+    })
+
+    expect(result.description).toBe('A real description')
+  })
 })

@@ -99,4 +99,23 @@ describe('getErrorMessage', () => {
       'Email e senha são obrigatórios.'
     )
   })
+
+  it('should translate "invalid credentials" API message', () => {
+    const axiosError = new axios.AxiosError('Request failed')
+    axiosError.response = {
+      data: { error: 'invalid credentials' },
+      status: 401,
+      statusText: 'Unauthorized',
+      headers: {},
+      config: {} as any,
+    }
+
+    expect(getErrorMessage(axiosError, 'Fallback message')).toBe('Email ou senha incorretos.')
+  })
+
+  it('should translate "invalid credentials" as a generic Error', () => {
+    expect(getErrorMessage(new Error('invalid credentials'), 'Fallback message')).toBe(
+      'Email ou senha incorretos.'
+    )
+  })
 })

@@ -19,7 +19,7 @@ vi.mock('next-auth/react', () => ({
 
 // Helper component to test useAuth hook
 function TestComponent() {
-  const { user, isLoading, login, register, logout } = useAuth()
+  const { user, isLoading, login, loginWithOAuth, register, logout } = useAuth()
 
   return (
     <div>
@@ -28,6 +28,9 @@ function TestComponent() {
       <div data-testid="user-id">{user?.id || 'no id'}</div>
       <button data-testid="login-btn" onClick={() => login('test@example.com', 'password')}>
         Login
+      </button>
+      <button data-testid="oauth-btn" onClick={() => loginWithOAuth('google')}>
+        OAuth
       </button>
       <button data-testid="register-btn" onClick={() => register('new@example.com', 'password', 'New User')}>
         Register
@@ -346,6 +349,30 @@ describe('AuthContext', () => {
       await waitFor(() => {
         expect(getByTestId('user')).toHaveTextContent('no user')
       })
+    })
+  })
+
+  describe('loginWithOAuth', () => {
+    it('should call signIn with the given provider and callbackUrl', async () => {
+      const { signIn } = await import('next-auth/react')
+      const mockApiClient = apiClientModule.apiClient as any
+      mockApiClient.get.mockResolvedValueOnce({ data: { user: null } })
+
+      const { getByTestId } = render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      )
+
+      await waitFor(() => {
+        expect(getByTestId('loading')).toHaveTextContent('ready')
+      })
+
+      await act(async () => {
+        getByTestId('oauth-btn').click()
+      })
+
+      expect(signIn).toHaveBeenCalledWith('google', { callbackUrl: '/dashboard' })
     })
   })
 })

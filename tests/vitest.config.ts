@@ -15,6 +15,7 @@ export default defineConfig({
       reportsDirectory: './coverage',
       include: [
         'contexts/**/*.tsx',
+        'hooks/**/*.ts',
         'lib/**/*.ts',
         'server/auth/**/*.ts',
         'server/db/**/*.ts',

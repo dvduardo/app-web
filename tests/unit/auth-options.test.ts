@@ -281,6 +281,44 @@ describe('auth-options', () => {
       expect(result).toBe(true)
     })
 
+    it('should handle existing oauth account update with no optional token fields', async () => {
+      const { prisma } = await import('@/server/db/prisma')
+      const mockExistingAccount = {
+        id: 'account-1',
+        user: { id: 'user-1', email: 'test@example.com' },
+      }
+
+      const mockTransaction = vi.fn(async (callback) => {
+        const txClient = {
+          oAuthAccount: {
+            findUnique: vi.fn().mockResolvedValueOnce(mockExistingAccount),
+            update: vi.fn().mockResolvedValueOnce(mockExistingAccount),
+            create: vi.fn(),
+          },
+          user: {
+            findUnique: vi.fn(),
+            create: vi.fn(),
+          },
+        }
+        return callback(txClient)
+      })
+
+      vi.mocked(prisma.$transaction).mockImplementation(mockTransaction)
+
+      const { authOptions } = await import('@/server/auth/auth-options')
+      const result = await authOptions.callbacks?.signIn?.({
+        user: { email: 'test@example.com', name: 'Test User' },
+        account: {
+          type: 'oauth',
+          provider: 'google',
+          providerAccountId: '123',
+          // no access_token, refresh_token, expires_at, token_type, scope
+        },
+      } as any)
+
+      expect(result).toBe(true)
+    })
+
     it('should handle existing user with new oauth provider', async () => {
       const { prisma } = await import('@/server/db/prisma')
 
@@ -318,6 +356,82 @@ describe('auth-options', () => {
       } as any)
 
       expect(result).toBe(true)
+    })
+
+    it('should derive user name from email when user.name is not provided', async () => {
+      const { prisma } = await import('@/server/db/prisma')
+
+      let capturedCreateData: Record<string, unknown> | null = null
+
+      const mockTransaction = vi.fn(async (callback) => {
+        const txClient = {
+          oAuthAccount: {
+            findUnique: vi.fn().mockResolvedValueOnce(null),
+            create: vi.fn().mockResolvedValueOnce({ id: 'oauth-1' }),
+          },
+          user: {
+            findUnique: vi.fn().mockResolvedValueOnce(null),
+            create: vi.fn().mockImplementationOnce((args: { data: Record<string, unknown> }) => {
+              capturedCreateData = args.data
+              return Promise.resolve({ id: 'new-user', email: 'john.doe@example.com', name: 'John Doe' })
+            }),
+          },
+        }
+        return callback(txClient)
+      })
+
+      vi.mocked(prisma.$transaction).mockImplementation(mockTransaction)
+
+      const { authOptions } = await import('@/server/auth/auth-options')
+      const result = await authOptions.callbacks?.signIn?.({
+        user: { email: 'john.doe@example.com', name: null },
+        account: {
+          type: 'oauth',
+          provider: 'google',
+          providerAccountId: '789',
+          access_token: 'token',
+        },
+      } as any)
+
+      expect(result).toBe(true)
+      expect(capturedCreateData?.name).toBe('John Doe')
+    })
+
+    it('should fall back to "Usuario" when email has no local part', async () => {
+      const { prisma } = await import('@/server/db/prisma')
+
+      let capturedCreateData: Record<string, unknown> | null = null
+
+      const mockTransaction = vi.fn(async (callback) => {
+        const txClient = {
+          oAuthAccount: {
+            findUnique: vi.fn().mockResolvedValueOnce(null),
+            create: vi.fn().mockResolvedValueOnce({ id: 'oauth-1' }),
+          },
+          user: {
+            findUnique: vi.fn().mockResolvedValueOnce(null),
+            create: vi.fn().mockImplementationOnce((args: { data: Record<string, unknown> }) => {
+              capturedCreateData = args.data
+              return Promise.resolve({ id: 'new-user', email: '@example.com', name: 'Usuario' })
+            }),
+          },
+        }
+        return callback(txClient)
+      })
+
+      vi.mocked(prisma.$transaction).mockImplementation(mockTransaction)
+
+      const { authOptions } = await import('@/server/auth/auth-options')
+      await authOptions.callbacks?.signIn?.({
+        user: { email: '@example.com', name: null },
+        account: {
+          type: 'oauth',
+          provider: 'google',
+          providerAccountId: '999',
+        },
+      } as any)
+
+      expect(capturedCreateData?.name).toBe('Usuario')
     })
   })
 
@@ -454,6 +568,29 @@ describe('auth-options', () => {
       expect(result?.user?.email).toBe('session@example.com')
       expect(result?.user?.name).toBe('Session Name')
     })
+
+    it('should fall back to empty string when token and session both lack email and name', async () => {
+      const { authOptions } = await import('@/server/auth/auth-options')
+      const session = {
+        user: {
+          // no email or name
+        },
+      }
+
+      const token = {
+        sub: 'user-123',
+        // no email or name
+      }
+
+      const result = await authOptions.callbacks?.session?.({
+        session,
+        token,
+      } as any)
+
+      expect(result?.user?.id).toBe('user-123')
+      expect(result?.user?.email).toBe('')
+      expect(result?.user?.name).toBe('')
+    })
   })
 
   describe('provider filtering', () => {
@@ -486,6 +623,20 @@ describe('auth-options', () => {
       delete process.env.GOOGLE_CLIENT_SECRET
       delete process.env.GITHUB_CLIENT_ID
       delete process.env.GITHUB_CLIENT_SECRET
+    })
+
+    it('should include Discord provider when Discord credentials are set', async () => {
+      vi.resetModules()
+      process.env.DISCORD_CLIENT_ID = 'discord-id'
+      process.env.DISCORD_CLIENT_SECRET = 'discord-secret'
+
+      const { authOptions } = await import('@/server/auth/auth-options')
+
+      // Discord credentials are set, so the Discord provider should be registered
+      expect(authOptions.providers.length).toBe(1)
+
+      delete process.env.DISCORD_CLIENT_ID
+      delete process.env.DISCORD_CLIENT_SECRET
     })
   })
 })
