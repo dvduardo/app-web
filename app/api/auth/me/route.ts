@@ -19,7 +19,7 @@ export async function GET(req: Request) {
   // Get full user data from database
   const fullUser = await prisma.user.findUnique({
     where: { id: user.userId },
-    select: { id: true, email: true, name: true },
+    select: { id: true, email: true, name: true, password: true },
   });
 
   if (!fullUser) {
@@ -29,8 +29,15 @@ export async function GET(req: Request) {
     );
   }
 
+  const { password, ...userWithoutPassword } = fullUser;
+
   return addCorsHeaders(
-    NextResponse.json({ user: fullUser }, { status: 200 }),
+    NextResponse.json({
+      user: {
+        ...userWithoutPassword,
+        hasPassword: password !== null,
+      },
+    }, { status: 200 }),
     req.headers.get("origin")
   );
 }
