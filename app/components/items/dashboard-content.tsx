@@ -22,6 +22,7 @@ import { useItems } from "@/hooks/use-items";
 import { useCategories } from "@/hooks/use-categories";
 import { getCategoryTheme } from "@/lib/category-theme";
 import { getItemStatusMeta, itemStatusOptions } from "@/lib/item-status";
+import { useOnline } from "@/hooks/use-online";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -55,6 +56,7 @@ export function DashboardContent({ userName }: { userName: string }) {
     selectedStatus,
     favoritesOnly
   );
+  const isOnline = useOnline();
   const visibleCategories = categories.filter(
     (category) => category.itemCount > 0
   );
@@ -94,6 +96,11 @@ export function DashboardContent({ userName }: { userName: string }) {
   };
 
   const handleDelete = async (itemId: string) => {
+    if (!isOnline) {
+      toast.error("Sem conexão. Exclusão só é permitida com internet.");
+      return;
+    }
+
     if (!confirm("Tem certeza que deseja deletar este item?")) return;
 
     try {

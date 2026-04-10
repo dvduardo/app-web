@@ -2,6 +2,7 @@
 
 import { useId, useRef, useState } from "react";
 import Image from "next/image";
+import { WifiOff } from "lucide-react";
 import { getPhotoSrc } from "@/lib/photo-helper";
 import {
   MAX_ITEM_PHOTO_COUNT,
@@ -10,6 +11,7 @@ import {
   optimizeImageFile,
   validatePhotoFile,
 } from "@/lib/photo-upload";
+import { useOnline } from "@/hooks/use-online";
 
 interface PhotoUploadProps {
   photos: UploadablePhoto[];
@@ -34,6 +36,7 @@ export function PhotoUpload({
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const [isProcessingFiles, setIsProcessingFiles] = useState(false);
+  const isOnline = useOnline();
 
   const processSelectedFiles = async (files: File[]) => {
     if (files.length === 0) {
@@ -94,7 +97,7 @@ export function PhotoUpload({
 
   const isBusy = disabled || isProcessingFiles;
   const isAtLimit = photos.length >= MAX_ITEM_PHOTO_COUNT;
-  const disablePickers = isBusy || isAtLimit;
+  const disablePickers = isBusy || isAtLimit || !isOnline;
 
   return (
     <section className="vault-app-panel rounded-[1.75rem] p-4 sm:p-6">
@@ -111,6 +114,15 @@ export function PhotoUpload({
           {photos.length}/{MAX_ITEM_PHOTO_COUNT}
         </span>
       </div>
+
+      {!isOnline && (
+        <div className="mb-4 flex items-center gap-3 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3">
+          <WifiOff className="h-4 w-4 shrink-0 text-amber-400" />
+          <p className="text-sm text-amber-200">
+            Sem conexão. Fotos só podem ser adicionadas com internet. Salve o item e adicione as fotos quando estiver online.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-4">
         {photos.length > 0 && (

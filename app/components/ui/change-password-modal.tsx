@@ -69,7 +69,7 @@ function ChangeForm({ onClose }: { onClose: () => void }) {
       toast.success("Senha alterada com sucesso!");
       onClose();
     } catch (err) {
-      toast.error(getErrorMessage(err) ?? "Erro ao alterar senha.");
+      toast.error(getErrorMessage(err, "Erro ao alterar senha."));
     }
   };
 
@@ -148,7 +148,7 @@ function SetForm({ onClose }: { onClose: () => void }) {
       toast.success("Senha definida com sucesso!");
       onClose();
     } catch (err) {
-      toast.error(getErrorMessage(err) ?? "Erro ao definir senha.");
+      toast.error(getErrorMessage(err, "Erro ao definir senha."));
     }
   };
 
