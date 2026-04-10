@@ -8,6 +8,7 @@ interface User {
   id: string;
   email: string;
   name: string;
+  hasPassword: boolean;
 }
 
 interface AuthContextType {
@@ -18,6 +19,7 @@ interface AuthContextType {
   loginWithOAuth: (provider: "google" | "github" | "discord") => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
+  changePassword: (currentPassword: string | undefined, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -76,6 +78,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signIn(provider, { callbackUrl: "/dashboard" });
   };
 
+  const changePassword = async (currentPassword: string | undefined, newPassword: string) => {
+    await apiClient.patch("/auth/password", { currentPassword, newPassword });
+    // Se o usuário não tinha senha (OAuth), agora tem — atualiza o estado
+    if (user && !user.hasPassword) {
+      setUser({ ...user, hasPassword: true });
+    }
+  };
+
   const logout = async () => {
     setIsLoading(true);
     try {
@@ -91,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, mounted, login, loginWithOAuth, register, logout }}
+      value={{ user, isLoading, mounted, login, loginWithOAuth, register, logout, changePassword }}
     >
       {children}
     </AuthContext.Provider>

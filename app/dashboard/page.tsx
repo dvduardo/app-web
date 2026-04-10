@@ -2,13 +2,15 @@
 
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DashboardContent } from "@/app/components/items/dashboard-content";
-import { LogOut, BookOpen } from "lucide-react";
+import { ChangePasswordModal } from "@/app/components/ui/change-password-modal";
+import { LogOut, BookOpen, KeyRound } from "lucide-react";
 
 export default function Dashboard() {
   const { user, isLoading, mounted, logout } = useAuth();
   const router = useRouter();
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -58,19 +60,35 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <button
-            onClick={handleLogout}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-indigo-400/20 bg-indigo-500/8 px-3 text-sm font-medium text-indigo-200 shadow-sm transition hover:bg-indigo-500/12"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            <span className="hidden sm:inline">Sair</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsPasswordModalOpen(true)}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-indigo-400/20 bg-indigo-500/8 px-3 text-sm font-medium text-indigo-200 shadow-sm transition hover:bg-indigo-500/12"
+              title={user.hasPassword ? "Alterar senha" : "Definir senha"}
+            >
+              <KeyRound className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">{user.hasPassword ? "Alterar senha" : "Definir senha"}</span>
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-indigo-400/20 bg-indigo-500/8 px-3 text-sm font-medium text-indigo-200 shadow-sm transition hover:bg-indigo-500/12"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Sair</span>
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="relative z-10 mx-auto max-w-7xl px-4 pb-28 pt-5 sm:px-6 sm:pt-8 lg:px-8">
         <DashboardContent userName={user.name} />
       </main>
+
+      <ChangePasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+      />
     </div>
   );
 }

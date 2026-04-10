@@ -8,6 +8,7 @@ vi.mock('@/lib/api-client', () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),
+    patch: vi.fn(),
   },
 }))
 
@@ -19,13 +20,14 @@ vi.mock('next-auth/react', () => ({
 
 // Helper component to test useAuth hook
 function TestComponent() {
-  const { user, isLoading, login, register, logout } = useAuth()
+  const { user, isLoading, login, register, logout, changePassword } = useAuth()
 
   return (
     <div>
       <div data-testid="loading">{isLoading ? 'loading' : 'ready'}</div>
       <div data-testid="user">{user ? `${user.name} (${user.email})` : 'no user'}</div>
       <div data-testid="user-id">{user?.id || 'no id'}</div>
+      <div data-testid="has-password">{user ? String(user.hasPassword) : 'no user'}</div>
       <button data-testid="login-btn" onClick={() => login('test@example.com', 'password')}>
         Login
       </button>
@@ -34,6 +36,12 @@ function TestComponent() {
       </button>
       <button data-testid="logout-btn" onClick={() => logout()}>
         Logout
+      </button>
+      <button data-testid="change-password-btn" onClick={() => changePassword('oldPass', 'newPass123')}>
+        ChangePassword
+      </button>
+      <button data-testid="set-password-btn" onClick={() => changePassword(undefined, 'newPass123')}>
+        SetPassword
       </button>
     </div>
   )
@@ -345,6 +353,123 @@ describe('AuthContext', () => {
 
       await waitFor(() => {
         expect(getByTestId('user')).toHaveTextContent('no user')
+      })
+    })
+  })
+
+  describe('hasPassword', () => {
+    it('should expose hasPassword=true when user has a password', async () => {
+      const mockApiClient = apiClientModule.apiClient as any
+      const mockUser = { id: '1', email: 'test@example.com', name: 'Test User', hasPassword: true }
+      mockApiClient.get.mockResolvedValueOnce({ data: { user: mockUser } })
+
+      const { getByTestId } = render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      )
+
+      await waitFor(() => {
+        expect(getByTestId('has-password')).toHaveTextContent('true')
+      })
+    })
+
+    it('should expose hasPassword=false when user logged in via OAuth', async () => {
+      const mockApiClient = apiClientModule.apiClient as any
+      const mockUser = { id: '2', email: 'oauth@example.com', name: 'OAuth User', hasPassword: false }
+      mockApiClient.get.mockResolvedValueOnce({ data: { user: mockUser } })
+
+      const { getByTestId } = render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      )
+
+      await waitFor(() => {
+        expect(getByTestId('has-password')).toHaveTextContent('false')
+      })
+    })
+  })
+
+  describe('changePassword', () => {
+    it('should call PATCH /auth/password with currentPassword and newPassword', async () => {
+      const mockApiClient = apiClientModule.apiClient as any
+      const mockUser = { id: '1', email: 'test@example.com', name: 'Test User', hasPassword: true }
+      mockApiClient.get.mockResolvedValueOnce({ data: { user: mockUser } })
+      mockApiClient.patch.mockResolvedValueOnce({ data: { success: true } })
+
+      const { getByTestId } = render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      )
+
+      await waitFor(() => {
+        expect(getByTestId('loading')).toHaveTextContent('ready')
+      })
+
+      await act(async () => {
+        getByTestId('change-password-btn').click()
+      })
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith('/auth/password', {
+          currentPassword: 'oldPass',
+          newPassword: 'newPass123',
+        })
+      })
+    })
+
+    it('should update hasPassword to true after OAuth user sets a password', async () => {
+      const mockApiClient = apiClientModule.apiClient as any
+      const mockUser = { id: '2', email: 'oauth@example.com', name: 'OAuth User', hasPassword: false }
+      mockApiClient.get.mockResolvedValueOnce({ data: { user: mockUser } })
+      mockApiClient.patch.mockResolvedValueOnce({ data: { success: true } })
+
+      const { getByTestId } = render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      )
+
+      await waitFor(() => {
+        expect(getByTestId('has-password')).toHaveTextContent('false')
+      })
+
+      await act(async () => {
+        getByTestId('set-password-btn').click()
+      })
+
+      await waitFor(() => {
+        expect(getByTestId('has-password')).toHaveTextContent('true')
+      })
+    })
+
+    it('should call PATCH /auth/password without currentPassword when setting for first time', async () => {
+      const mockApiClient = apiClientModule.apiClient as any
+      const mockUser = { id: '2', email: 'oauth@example.com', name: 'OAuth User', hasPassword: false }
+      mockApiClient.get.mockResolvedValueOnce({ data: { user: mockUser } })
+      mockApiClient.patch.mockResolvedValueOnce({ data: { success: true } })
+
+      const { getByTestId } = render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      )
+
+      await waitFor(() => {
+        expect(getByTestId('loading')).toHaveTextContent('ready')
+      })
+
+      await act(async () => {
+        getByTestId('set-password-btn').click()
+      })
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith('/auth/password', {
+          currentPassword: undefined,
+          newPassword: 'newPass123',
+        })
       })
     })
   })
