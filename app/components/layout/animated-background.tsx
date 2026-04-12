@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 const mosaicCards = [
   { bg: "from-[#1e1b4b] to-[#312e81]", emoji: "🎮" },
   { bg: "from-[#14532d] to-[#166534]", emoji: "📚" },
@@ -52,8 +54,8 @@ export function AnimatedBackground({ children }: { children: React.ReactNode }) 
         {/* Brand copy — bottom */}
         <div className="relative z-10 space-y-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-xl shadow-[0_8px_24px_rgba(99,102,241,0.4)]">
-              📦
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl overflow-hidden shadow-[0_8px_24px_rgba(99,102,241,0.4)]">
+              <Image src="/icons/icon-192.png" alt="Minhas Coleções" width={44} height={44} className="h-11 w-11 object-cover" />
             </div>
             <span className="font-display text-xl font-bold tracking-tight text-white">
               Minhas Coleções

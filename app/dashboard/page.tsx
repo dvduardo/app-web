@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { DashboardContent } from "@/app/components/items/dashboard-content";
 import { ChangePasswordModal } from "@/app/components/ui/change-password-modal";
 import { InstallBanner } from "@/app/components/ui/install-banner";
-import { LogOut, BookOpen, KeyRound } from "lucide-react";
+import Image from "next/image";
+import { LogOut, KeyRound } from "lucide-react";
 
 export default function Dashboard() {
   const { user, isLoading, mounted, logout } = useAuth();
@@ -48,8 +49,8 @@ export default function Dashboard() {
       <header className="sticky top-0 z-30 border-b border-indigo-400/10 bg-[#0d0d1f]/82 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-700 to-violet-600 shadow-[0_0_24px_rgba(99,102,241,0.32)]">
-              <BookOpen className="h-6 w-6 text-white" />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl overflow-hidden shadow-[0_0_24px_rgba(99,102,241,0.32)]">
+              <Image src="/icons/icon-192.png" alt="Minhas Coleções" width={48} height={48} className="h-12 w-12 object-cover" />
             </div>
             <div className="min-w-0">
               <h1 className="font-display truncate text-lg font-semibold tracking-[-0.03em] text-slate-50 sm:text-2xl">
@@ -82,7 +83,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-28 pt-5 sm:px-6 sm:pt-8 lg:px-8">
+      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-32 pt-5 sm:px-6 sm:pb-10 sm:pt-8 lg:px-8">
         <DashboardContent userName={user.name} />
       </main>
 
