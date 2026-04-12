@@ -40,8 +40,12 @@ export function InstallBanner() {
   const [showSteps, setShowSteps] = useState(false);
 
   useEffect(() => {
-    const wasDismissed = localStorage.getItem(DISMISSED_KEY) === "true";
-    setDismissed(wasDismissed);
+    const timeoutId = window.setTimeout(() => {
+      const wasDismissed = localStorage.getItem(DISMISSED_KEY) === "true";
+      setDismissed(wasDismissed);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const handleDismiss = () => {

@@ -23,18 +23,20 @@ export function useInstallPrompt(): UseInstallPromptReturn {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    // Detecta se já está instalado (rodando em standalone)
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      ("standalone" in window.navigator &&
-        (window.navigator as { standalone?: boolean }).standalone === true);
-    setIsInstalled(standalone);
+    const timeoutId = window.setTimeout(() => {
+      // Detecta se já está instalado (rodando em standalone)
+      const standalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        ("standalone" in window.navigator &&
+          (window.navigator as { standalone?: boolean }).standalone === true);
+      setIsInstalled(standalone);
 
-    // Detecta plataforma
-    const ua = window.navigator.userAgent;
-    const isIos = /iphone|ipad|ipod/i.test(ua);
-    const isAndroid = /android/i.test(ua);
-    setPlatform(isIos ? "ios" : isAndroid ? "android" : "other");
+      // Detecta plataforma
+      const ua = window.navigator.userAgent;
+      const isIos = /iphone|ipad|ipod/i.test(ua);
+      const isAndroid = /android/i.test(ua);
+      setPlatform(isIos ? "ios" : isAndroid ? "android" : "other");
+    }, 0);
 
     // Android/Chrome: captura o evento de instalação nativo
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -45,6 +47,7 @@ export function useInstallPrompt(): UseInstallPromptReturn {
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     return () => {
+      window.clearTimeout(timeoutId);
       window.removeEventListener(
         "beforeinstallprompt",
         handleBeforeInstallPrompt

@@ -45,13 +45,17 @@ export function QueryProvider({ children }: { children: ReactNode }) {
   > | null>(null);
 
   useEffect(() => {
-    // localStorage só existe no browser — criamos o persister no client
-    const p = createSyncStoragePersister({
-      storage: window.localStorage,
-      key: CACHE_KEY,
-      throttleTime: 1000,
-    });
-    setPersister(p);
+    const timeoutId = window.setTimeout(() => {
+      // localStorage só existe no browser — criamos o persister no client
+      const p = createSyncStoragePersister({
+        storage: window.localStorage,
+        key: CACHE_KEY,
+        throttleTime: 1000,
+      });
+      setPersister(p);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   // Antes do persister estar pronto, renderiza sem persistência
