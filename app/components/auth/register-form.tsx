@@ -9,7 +9,9 @@ import { getProviders } from "next-auth/react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User, BookOpen, UserPlus } from "lucide-react";
+import { Mail, Lock, User, BookOpen, Disc3, Bot, Gamepad2, UserPlus, type LucideIcon } from "lucide-react";
+
+const collectibleIcons: LucideIcon[] = [BookOpen, Disc3, Bot, Gamepad2];
 import { getErrorMessage } from "@/lib/get-error-message";
 import { registerSchema } from "@/lib/schemas/auth";
 import { OAuthButtons } from "@/app/components/auth/oauth-buttons";
@@ -20,6 +22,8 @@ export function RegisterForm() {
   const { register, loginWithOAuth } = useAuth();
   const router = useRouter();
   const [availableProviders, setAvailableProviders] = useState<Array<"google" | "github" | "discord">>([]);
+  const [activeIconIndex, setActiveIconIndex] = useState(0);
+  const [isIconTransitioning, setIsIconTransitioning] = useState(false);
   const {
     register: registerField,
     handleSubmit,
@@ -61,15 +65,50 @@ export function RegisterForm() {
     void loadProviders();
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let isLocked = false;
+    const intervalId = window.setInterval(() => {
+      if (isLocked) return;
+      isLocked = true;
+      setIsIconTransitioning(true);
+      window.setTimeout(() => {
+        setActiveIconIndex((i) => (i + 1) % collectibleIcons.length);
+      }, 90);
+      window.setTimeout(() => {
+        setIsIconTransitioning(false);
+        isLocked = false;
+      }, 220);
+    }, 3600);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
   return (
     <div className="w-full">
       <div>
 
         {/* Mobile header — icon centered above, text below (hidden on desktop) */}
         <div className="mb-8 flex flex-col items-center text-center lg:hidden">
-          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] bg-gradient-to-br from-indigo-700 via-indigo-500 to-violet-500 shadow-[0_14px_32px_rgba(79,70,229,0.4)]">
+          <div className="relative h-16 w-16 shrink-0">
+            <div className="absolute inset-0 rounded-[22px] bg-linear-to-br from-indigo-700 via-indigo-500 to-violet-500 shadow-[0_14px_32px_rgba(79,70,229,0.4)]" />
             <div className="absolute inset-px rounded-[21px] border border-white/10" />
-            <BookOpen className="relative h-7 w-7 text-white" />
+            {collectibleIcons.map((Icon, index) => {
+              const isActive = index === activeIconIndex;
+              return (
+                <div
+                  key={Icon.displayName ?? Icon.name ?? `collectible-icon-${index}`}
+                  aria-hidden="true"
+                  className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${
+                    isActive ? "opacity-100 scale-100" : "pointer-events-none opacity-0 scale-95"
+                  } ${isIconTransitioning && isActive ? "opacity-0" : ""}`}
+                >
+                  <Icon className="h-7 w-7 text-white" />
+                </div>
+              );
+            })}
           </div>
           <p className="mt-4 font-display text-xl font-semibold text-white">Minhas Coleções</p>
           <p className="mt-1 text-sm text-slate-400">Crie sua conta</p>
