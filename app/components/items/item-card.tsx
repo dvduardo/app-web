@@ -8,6 +8,7 @@ import { getPhotoSrc } from "@/lib/photo-helper";
 import { ImageGalleryModal } from "@/app/components/ui/image-gallery-modal";
 import { getCategoryTheme } from "@/lib/category-theme";
 import { getItemStatusMeta } from "@/lib/item-status";
+import { useOnline } from "@/hooks/use-online";
 
 interface Item {
   id: string;
@@ -44,6 +45,7 @@ export function ItemCard({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const isListView = viewMode === "list";
+  const isOnline = useOnline();
   const categoryName = item.category?.name ?? "Sem categoria";
   const categoryTheme = getCategoryTheme(item.category?.name);
   const statusMeta = getItemStatusMeta(item.status);
@@ -241,18 +243,20 @@ export function ItemCard({
                 />
               </button>
             )}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(item.id);
-              }}
-              aria-label={`Deletar item ${item.title}`}
-              title={`Deletar item ${item.title}`}
-              className={`flex items-center justify-center gap-2 rounded-2xl bg-rose-500/10 font-medium text-rose-300 transition-colors hover:bg-rose-500/15 ${isListView ? "px-3 py-2 text-xs" : "px-3 py-3 text-sm"}`}
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>{isListView ? "Excluir" : "Deletar"}</span>
-            </button>
+            {isOnline && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(item.id);
+                }}
+                aria-label={`Deletar item ${item.title}`}
+                title={`Deletar item ${item.title}`}
+                className={`flex items-center justify-center gap-2 rounded-2xl bg-rose-500/10 font-medium text-rose-300 transition-colors hover:bg-rose-500/15 ${isListView ? "px-3 py-2 text-xs" : "px-3 py-3 text-sm"}`}
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>{isListView ? "Excluir" : "Deletar"}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

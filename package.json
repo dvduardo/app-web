@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && next build --webpack",
     "start": "node server/scripts/start.mjs",
     "seed": "node server/scripts/seed.mjs",
     "db:up": "docker-compose up -d",
@@ -21,10 +21,14 @@
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@hookform/resolvers": "^5.2.2",
+    "@tanstack/query-sync-storage-persister": "^5.97.0",
     "@tanstack/react-query": "^5.96.0",
+    "@tanstack/react-query-persist-client": "^5.97.0",
     "axios": "^1.14.0",
     "bcryptjs": "^3.0.3",
+    "idb-keyval": "^6.2.2",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.7.0",
     "next": "16.2.1",

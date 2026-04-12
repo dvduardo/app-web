@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/auth-context";
 
 import { ToastProvider } from "@/app/components/ui/toast-provider";
 import { ClientProvider } from "@/app/components/ui/client-provider";
+import { ServiceWorkerInit } from "@/app/components/ui/service-worker-init";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,14 +24,23 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: "Coleção Virtual",
-  description: "Gerenciador de coleções",
-  formatDetection: {
-    telephone: false,
+  description: "Gerenciador de coleções pessoais",
+  formatDetection: { telephone: false },
+  applicationName: "Coleções",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Coleções",
   },
+  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
   themeColor: "#0d0d1f",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -44,18 +54,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased`}
     >
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
         <meta name="color-scheme" content="dark" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Coleções" />
-        <meta name="theme-color" content="#0d0d1f" />
         <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232563eb' width='192' height='192'/><text x='50%' y='50%' font-size='80' fill='white' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>📚</text></svg>" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
       </head>
       <body className="min-h-screen w-full overflow-x-hidden flex flex-col">
         <ClientProvider>
+          <ServiceWorkerInit />
           <ToastProvider />
           <AuthProvider>
             {children}

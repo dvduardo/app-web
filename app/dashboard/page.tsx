@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DashboardContent } from "@/app/components/items/dashboard-content";
 import { ChangePasswordModal } from "@/app/components/ui/change-password-modal";
+import { InstallBanner } from "@/app/components/ui/install-banner";
 import { LogOut, BookOpen, KeyRound } from "lucide-react";
 
 export default function Dashboard() {
@@ -89,6 +90,8 @@ export default function Dashboard() {
         isOpen={isPasswordModalOpen}
         onClose={() => setIsPasswordModalOpen(false)}
       />
+
+      <InstallBanner />
     </div>
   );
 }

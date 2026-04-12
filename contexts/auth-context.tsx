@@ -23,6 +23,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
+const AUTH_CACHE_KEY = "colecao-virtual-auth-user";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -33,12 +34,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setMounted(true);
 
     const checkAuth = async () => {
+      const cachedUser = window.localStorage.getItem(AUTH_CACHE_KEY);
+
+      if (!window.navigator.onLine && cachedUser) {
+        try {
+          setUser(JSON.parse(cachedUser));
+        } catch {
+          window.localStorage.removeItem(AUTH_CACHE_KEY);
+        } finally {
+          setIsLoading(false);
+        }
+        return;
+      }
+
       try {
         const response = await apiClient.get("/auth/me");
         if (response.data.user) {
           setUser(response.data.user);
+          window.localStorage.setItem(
+            AUTH_CACHE_KEY,
+            JSON.stringify(response.data.user)
+          );
+        } else {
+          window.localStorage.removeItem(AUTH_CACHE_KEY);
         }
       } catch (error) {
+        if (!window.navigator.onLine && cachedUser) {
+          try {
+            setUser(JSON.parse(cachedUser));
+          } catch {
+            window.localStorage.removeItem(AUTH_CACHE_KEY);
+          }
+        }
         console.error("Auth check failed:", error);
       } finally {
         setIsLoading(false);
@@ -56,6 +83,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       });
       setUser(response.data.user);
+      window.localStorage.setItem(
+        AUTH_CACHE_KEY,
+        JSON.stringify(response.data.user)
+      );
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +113,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await apiClient.patch("/auth/password", { currentPassword, newPassword });
     // Se o usuário não tinha senha (OAuth), agora tem — atualiza o estado
     if (user && !user.hasPassword) {
-      setUser({ ...user, hasPassword: true });
+      const nextUser = { ...user, hasPassword: true };
+      setUser(nextUser);
+      window.localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(nextUser));
     }
   };
 
@@ -94,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signOut({ redirect: false }),
       ]);
       setUser(null);
+      window.localStorage.removeItem(AUTH_CACHE_KEY);
     } finally {
       setIsLoading(false);
     }
