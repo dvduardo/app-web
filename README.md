@@ -25,6 +25,10 @@ Hoje o projeto está organizado em três frentes principais:
 - Categorias por usuário, com criação direta pelo formulário
 - Soft delete em itens (não destrutivo, marca `deletedAt`)
 - React Query com cache inteligente (stale time 30s)
+- **PWA instalável** com manifest, ícones, screenshots e modo standalone
+- **Suporte offline** com service worker, cache de páginas, assets, APIs de leitura e dados do React Query
+- Banner de instalação com detecção de Android/iOS e estado standalone
+- Restauração de sessão local quando o app abre sem internet
 - Notificações com `react-hot-toast`
 - Cobertura de testes: **97.81%** (135 testes passando)
 - Testes unitários com Vitest e E2E com Playwright
@@ -63,7 +67,8 @@ Hoje o projeto está organizado em três frentes principais:
 | Linguagem | TypeScript 5 |
 | UI | Tailwind CSS 4 + Lucide React |
 | Forms | React Hook Form + Zod |
-| Dados no cliente | TanStack React Query 5 + Axios |
+| Dados no cliente | TanStack React Query 5 + persistência em localStorage + Axios |
+| PWA | `@ducanh2912/next-pwa` + Workbox |
 | Banco | Prisma ORM + PostgreSQL |
 | Auth | JWT + bcryptjs |
 | Testes | Vitest + Testing Library + Playwright |
@@ -79,8 +84,9 @@ app/
   components/           componentes da landing, auth, dashboard e UI
 
 contexts/               contexto de autenticação no cliente
-hooks/                  hooks de dados para itens, categorias e campos customizáveis
+hooks/                  hooks de dados, status online e prompt de instalação
 lib/                    schemas, client HTTP e utilitários compartilhados
+public/                 manifest, service worker, ícones e screenshots PWA
 server/                 auth, Prisma, validação, CORS, logs e scripts
 prisma/                 schema e migrations do banco
 tests/                  suíte unitária e E2E
@@ -206,11 +212,33 @@ Abra:
 - `http://localhost:3000/auth/login` para login
 - `http://localhost:3000/dashboard` para a área autenticada
 
+### Testando PWA e offline
+
+O suporte offline deve ser testado em build de produção. Em `next dev`, o `next-pwa` desabilita a maior parte do precache e o comportamento offline não representa o app final.
+
+```bash
+npm run build
+npx next start
+```
+
+Depois:
+
+1. Abra `http://localhost:3000/auth/login` ou a URL HTTPS do deploy/túnel.
+2. Aguarde alguns segundos para o service worker instalar e controlar a página.
+3. Faça login e visite o dashboard pelo menos uma vez para popular os caches de página, API e React Query.
+4. Desative a rede e recarregue a página.
+
+Observações:
+
+- `npm run build` usa `next build --webpack` porque o Workbox do `@ducanh2912/next-pwa` é gerado pelo pipeline Webpack.
+- No celular, se uma versão antiga já foi aberta, limpe os dados do site ou reinstale o PWA para remover service workers antigos.
+- A experiência offline é voltada para leitura e navegação com dados já carregados; ações que alteram dados ainda precisam de conexão.
+
 ## Scripts
 
 ```bash
 npm run dev              # ambiente de desenvolvimento
-npm run build            # build de produção
+npm run build            # build de produção com Webpack para gerar o service worker
 npm start                # inicia o servidor via server/scripts/start.mjs
 npm run db:up            # sobe o PostgreSQL local com Docker Compose
 npm run db:down          # derruba o PostgreSQL local
@@ -233,7 +261,8 @@ O projeto já está configurado para deploy com Prisma + Vercel:
 - o Prisma foi preparado para `postgresql`
 - existe migration inicial em `prisma/migrations/`
 - [`vercel.json`](/Users/david/Documents/projetos/app-web/vercel.json) executa `npm run build`
-- `npm run build` já executa `prisma generate && next build`
+- `npm run build` já executa `prisma generate && next build --webpack`
+- o service worker é gerado em `public/sw.js` durante o build
 
 Para subir:
 
@@ -309,9 +338,21 @@ Arquivos de referência:
 ### Dados & Caching
 
 - **React Query**: Stale time 30s para revalidação automática
+- **Persistência de queries**: Cache salvo em `localStorage` por até 24h para leitura offline
+- **Service worker**: Workbox cacheia app shell, assets estáticos, páginas navegadas, manifest, screenshots e APIs de leitura
+- **Sessão offline**: Usuário autenticado é restaurado do cache local quando o app abre sem rede
 - **Paginação**: Padrão 12 itens/página, máximo 50
 - **Busca**: Busca em tempo real (título + descrição)
 - **Soft Delete**: Items marcados com `deletedAt` não são retornados por padrão
+
+### PWA
+
+- **Manifest**: disponível em `/manifest.webmanifest` via App Router e em `/manifest.json` no diretório público
+- **Start URL**: `/dashboard`
+- **Display**: standalone em orientação portrait
+- **Ícones**: `192x192` e `512x512 maskable`
+- **Screenshots**: imagens desktop e mobile para instalação
+- **Instalação**: banner próprio com detecção de plataforma e estado instalado
 
 ### Upload de Fotos
 

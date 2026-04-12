@@ -56,7 +56,7 @@ export default function RootLayout({
       <head>
         <meta name="color-scheme" content="dark" />
         <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
       </head>
       <body className="min-h-screen w-full overflow-x-hidden flex flex-col">
         <ClientProvider>

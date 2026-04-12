@@ -1,15 +1,33 @@
 import { vi, beforeEach, afterEach } from 'vitest'
 import '@testing-library/jest-dom'
 
+// Mock estável de localStorage (vi.resetAllMocks quebrava a implementação do jsdom)
+const localStorageStore: Record<string, string> = {}
+const localStorageMock = {
+  getItem: (key: string) => localStorageStore[key] ?? null,
+  setItem: (key: string, value: string) => { localStorageStore[key] = value },
+  removeItem: (key: string) => { delete localStorageStore[key] },
+  clear: () => { Object.keys(localStorageStore).forEach(k => delete localStorageStore[k]) },
+  get length() { return Object.keys(localStorageStore).length },
+  key: (index: number) => Object.keys(localStorageStore)[index] ?? null,
+}
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: false,
+  configurable: true,
+})
+
 // Setup global
 beforeEach(() => {
-  // Limpar todos os mocks
+  // Limpar todos os mocks e o localStorage entre testes
   vi.clearAllMocks()
+  localStorageMock.clear()
 })
 
 afterEach(() => {
-  // Cleanup pós-teste
-  vi.resetAllMocks()
+  // Limpar chamadas sem resetar implementações nativas (resetAllMocks quebra o localStorage do jsdom)
+  vi.clearAllMocks()
 })
 
 /**
