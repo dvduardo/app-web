@@ -81,7 +81,6 @@ describe('auth-options', () => {
   describe('getOptionalEnv', () => {
     it('should return env variable value when present', async () => {
       process.env.TEST_VAR = 'test-value'
-      const module = await import('@/server/auth/auth-options')
       // Test through provider building
       process.env.GOOGLE_CLIENT_ID = 'google-id'
       process.env.GOOGLE_CLIENT_SECRET = 'google-secret'
